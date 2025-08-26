@@ -153,7 +153,7 @@
                 <span class="text-red-600 text-sm">لا يمكن التراجع عن هذا الإجراء!</span>
             </p>
             <div class="flex gap-4 justify-center">
-                <button type="button" onclick="hideModal(document.getElementById('deleteModal'))" class="btn btn-secondary">
+                <button type="button" onclick="hideDeleteModal('deleteModal')" class="btn btn-secondary">
                     إلغاء
                 </button>
                 <form id="deleteForm" method="POST" style="display: inline;">
@@ -170,32 +170,75 @@
 </div>
 
 <script>
-function confirmDelete(productId, productName) {
-    document.getElementById('productName').textContent = productName;
-    document.getElementById('deleteForm').action = '/products/' + productId;
-    
-    // Show modal using the global function
-    if (typeof showModal === 'function') {
-        showModal('deleteModal');
-    } else {
-        // Fallback if showModal is not available
-        document.getElementById('deleteModal').classList.remove('hidden');
+// Modal functions
+function showDeleteModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
     }
 }
 
-// Show success/error messages only if functions are available
+function hideDeleteModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+}
+
+function confirmDelete(productId, productName) {
+    document.getElementById('productName').textContent = productName;
+    document.getElementById('deleteForm').action = '/products/' + productId;
+    showDeleteModal('deleteModal');
+}
+
+// Show success/error messages with simple toast
+function showSimpleToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = `fixed top-4 left-4 z-50 max-w-sm bg-white border border-gray-200 rounded-xl shadow-lg p-4 transform transition-all duration-300`;
+    
+    const bgColor = type === 'success' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200';
+    const iconColor = type === 'success' ? 'text-green-500' : 'text-red-500';
+    const icon = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
+    
+    toast.className = `fixed top-4 left-4 z-50 max-w-sm ${bgColor} rounded-xl shadow-lg p-4 transform transition-all duration-300`;
+    
+    toast.innerHTML = `
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="${icon} ${iconColor} text-lg"></i>
+            </div>
+            <div class="mr-3 flex-1">
+                <p class="text-sm font-medium text-gray-900">${message}</p>
+            </div>
+            <div class="mr-auto pl-3">
+                <button class="inline-flex text-gray-400 hover:text-gray-600 focus:outline-none" onclick="this.parentElement.parentElement.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.remove();
+        }
+    }, 5000);
+}
+
+// Initialize page
 document.addEventListener('DOMContentLoaded', function() {
     // Show messages
     @if(session('success'))
-        if (typeof showToast === 'function') {
-            showToast('{{ session('success') }}', 'success');
-        }
+        showSimpleToast('{{ session('success') }}', 'success');
     @endif
 
     @if(session('error'))
-        if (typeof showToast === 'function') {
-            showToast('{{ session('error') }}', 'error');
-        }
+        showSimpleToast('{{ session('error') }}', 'error');
     @endif
 
     // Add search functionality
@@ -207,6 +250,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 500));
     }
+
+    // Close modal on overlay click
+    document.getElementById('deleteModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideDeleteModal('deleteModal');
+        }
+    });
+
+    // Close modal on ESC key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            hideDeleteModal('deleteModal');
+        }
+    });
 });
 
 function debounce(func, wait) {
@@ -220,26 +277,5 @@ function debounce(func, wait) {
         timeout = setTimeout(later, wait);
     };
 }
-
-// Manual modal functions if global ones are not available
-function hideModalManual(modalElement) {
-    if (modalElement) {
-        modalElement.classList.add('hidden');
-    }
-}
-
-// Override the hideModal call in the modal
-document.addEventListener('DOMContentLoaded', function() {
-    const cancelButton = document.querySelector('#deleteModal button[onclick*="hideModal"]');
-    if (cancelButton) {
-        cancelButton.onclick = function() {
-            if (typeof hideModal === 'function') {
-                hideModal(document.getElementById('deleteModal'));
-            } else {
-                hideModalManual(document.getElementById('deleteModal'));
-            }
-        };
-    }
-});
 </script>
 @endsection
