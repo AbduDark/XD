@@ -1,4 +1,3 @@
-
 <?php
 
 namespace App\Http\Controllers;
@@ -17,7 +16,7 @@ class DashboardController extends Controller
     {
         $today = Carbon::today();
         $thisMonth = Carbon::now()->startOfMonth();
-        
+
         $stats = [
             'today_sales' => Invoice::whereDate('created_at', $today)->sum('total'),
             'today_sales_count' => Invoice::whereDate('created_at', $today)->count(),
@@ -39,16 +38,15 @@ class DashboardController extends Controller
 
     private function getSalesChartData()
     {
-        $last7Days = collect();
+        $salesData = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
             $sales = Invoice::whereDate('created_at', $date)->sum('total');
-            $last7Days->push([
-                'date' => $date->format('Y-m-d'),
-                'date_ar' => $date->format('d/m'),
+            $salesData[] = [
+                'date' => $date->format('M d'),
                 'sales' => $sales
-            ]);
+            ];
         }
-        return $last7Days;
+        return $salesData;
     }
 }
