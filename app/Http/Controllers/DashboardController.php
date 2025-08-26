@@ -38,16 +38,15 @@ class DashboardController extends Controller
 
     private function getSalesChartData()
     {
-        $last7Days = collect();
+        $salesData = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
             $sales = Invoice::whereDate('created_at', $date)->sum('total');
-            $last7Days->push([
-                'date' => $date->format('Y-m-d'),
-                'date_ar' => $date->format('d/m'),
+            $salesData[] = [
+                'date' => $date->format('M d'),
                 'sales' => $sales
-            ]);
+            ];
         }
-        return $last7Days;
+        return $salesData;
     }
 }
