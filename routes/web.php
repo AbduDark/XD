@@ -24,6 +24,19 @@ Route::get('/', function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // API Routes for dashboard and search
+    Route::prefix('api')->group(function () {
+        Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
+        Route::get('/dashboard/recent-invoices', [DashboardController::class, 'getRecentInvoices']);
+        Route::get('/dashboard/recent-repairs', [DashboardController::class, 'getRecentRepairs']);
+        Route::get('/dashboard/sales-chart', [DashboardController::class, 'getSalesChart']);
+        Route::get('/products/search', [ProductController::class, 'search']);
+        Route::get('/products', [ProductController::class, 'apiIndex']);
+    });
+
+    // Products Routes
+    Route::resource('products', ProductController::class);
 
 // API routes for dashboard
 Route::prefix('api')->middleware('auth')->group(function () {
