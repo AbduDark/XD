@@ -191,7 +191,7 @@ function hideDeleteModal(modalId) {
 function confirmDelete(productId, productName) {
     document.getElementById('productName').textContent = productName;
     document.getElementById('deleteForm').action = '/products/' + productId;
-    // showDeleteModal('deleteModal');
+    showDeleteModal('deleteModal');
 }
 
 // Show success/error messages with simple toast
@@ -253,16 +253,22 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Close modal on overlay click
-    document.getElementById('deleteModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            hideDeleteModal('deleteModal');
-        }
-    });
+    const deleteModal = document.getElementById('deleteModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideDeleteModal('deleteModal');
+            }
+        });
+    }
 
     // Close modal on ESC key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-            hideDeleteModal('deleteModal');
+            const deleteModal = document.getElementById('deleteModal');
+            if (deleteModal && !deleteModal.classList.contains('hidden')) {
+                hideDeleteModal('deleteModal');
+            }
         }
     });
 });
