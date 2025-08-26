@@ -12,22 +12,22 @@ class ReturnSeeder extends Seeder
 {
     public function run()
     {
-        $products = Product::all();
         $users = User::all();
-        $reasons = ['منتج معيب', 'عدم رضا العميل', 'مقاس خاطئ', 'لون خاطئ', 'استبدال بمنتج آخر'];
+        $products = Product::all();
+        $reasons = ['منتج معيب', 'عدم مطابقة الوصف', 'طلب العميل', 'منتج منتهي الصلاحية'];
 
         for ($i = 1; $i <= 15; $i++) {
+            $product = $products->random();
+            $quantity = rand(1, 3);
+
             ReturnItem::create([
-                'return_number' => 'RET-' . str_pad($i, 6, '0', STR_PAD_LEFT),
-                'customer_name' => 'عميل الاسترداد ' . $i,
-                'customer_phone' => '01' . rand(100000000, 999999999),
-                'product_id' => $products->random()->id,
-                'quantity' => rand(1, 3),
-                'return_price' => rand(50, 500),
+                'product_id' => $product->id,
+                'quantity' => $quantity,
+                'amount' => $quantity * $product->selling_price,
                 'reason' => $reasons[rand(0, count($reasons) - 1)],
-                'status' => ['pending', 'approved', 'rejected'][rand(0, 2)],
                 'user_id' => $users->random()->id,
-                'created_at' => Carbon::now()->subDays(rand(0, 10)),
+                'created_at' => Carbon::now()->subDays(rand(0, 20)),
+                'updated_at' => Carbon::now()->subDays(rand(0, 19)),
             ]);
         }
     }

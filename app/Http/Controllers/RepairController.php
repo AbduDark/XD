@@ -1,3 +1,4 @@
+
 <?php
 
 namespace App\Http\Controllers;
@@ -7,32 +8,10 @@ use Illuminate\Http\Request;
 
 class RepairController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $query = Repair::with('user');
-
-        if ($request->search) {
-            $query->where(function($q) use ($request) {
-                $q->where('customer_name', 'like', '%' . $request->search . '%')
-                  ->orWhere('customer_phone', 'like', '%' . $request->search . '%')
-                  ->orWhere('device_type', 'like', '%' . $request->search . '%');
-            });
-        }
-
-        if ($request->status) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->date_from) {
-            $query->whereDate('created_at', '>=', $request->date_from);
-        }
-
-        if ($request->date_to) {
-            $query->whereDate('created_at', '<=', $request->date_to);
-        }
-
-        $repairs = $query->orderBy('created_at', 'desc')->paginate(20);
-
+        $repairs = Repair::with('user')->orderBy('created_at', 'desc')->paginate(20);
+        
         return view('repairs.index', compact('repairs'));
     }
 
@@ -48,22 +27,22 @@ class RepairController extends Controller
             'customer_phone' => 'required|string|max:20',
             'device_type' => 'required|string|max:255',
             'problem_description' => 'required|string',
-            'estimated_cost' => 'required|numeric|min:0',
-            'estimated_delivery' => 'required|date',
+            'repair_type' => 'required|in:hardware,software',
+            'repair_cost' => 'required|numeric|min:0',
         ]);
 
         Repair::create([
-            'user_id' => auth()->id(),
             'customer_name' => $request->customer_name,
             'customer_phone' => $request->customer_phone,
             'device_type' => $request->device_type,
             'problem_description' => $request->problem_description,
-            'estimated_cost' => $request->estimated_cost,
-            'estimated_delivery' => $request->estimated_delivery,
+            'repair_type' => $request->repair_type,
+            'repair_cost' => $request->repair_cost,
             'status' => 'pending',
+            'user_id' => auth()->id(),
         ]);
 
-        return redirect()->route('repairs.index')->with('success', 'تم إضافة عملية الصيانة بنجاح');
+        return redirect()->route('repairs.index')->with('success', 'تم إضافة أمر الصيانة بنجاح');
     }
 
     public function show(Repair $repair)
@@ -83,22 +62,20 @@ class RepairController extends Controller
             'customer_phone' => 'required|string|max:20',
             'device_type' => 'required|string|max:255',
             'problem_description' => 'required|string',
-            'estimated_cost' => 'required|numeric|min:0',
-            'actual_cost' => 'nullable|numeric|min:0',
-            'estimated_delivery' => 'required|date',
-            'actual_delivery' => 'nullable|date',
+            'repair_type' => 'required|in:hardware,software',
+            'repair_cost' => 'required|numeric|min:0',
             'status' => 'required|in:pending,in_progress,completed,delivered',
-            'notes' => 'nullable|string',
         ]);
 
         $repair->update($request->all());
 
-        return redirect()->route('repairs.index')->with('success', 'تم تحديث عملية الصيانة بنجاح');
+        return redirect()->route('repairs.index')->with('success', 'تم تحديث أمر الصيانة بنجاح');
     }
 
     public function destroy(Repair $repair)
     {
         $repair->delete();
-        return redirect()->route('repairs.index')->with('success', 'تم حذف عملية الصيانة بنجاح');
+        
+        return redirect()->route('repairs.index')->with('success', 'تم حذف أمر الصيانة بنجاح');
     }
 }

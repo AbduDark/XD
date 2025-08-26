@@ -10,6 +10,7 @@ use App\Http\Controllers\CashTransferController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\BackupController;
+use App\Http\Controllers\ProfileController;
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -41,21 +42,28 @@ Route::middleware(['auth'])->group(function () {
     // Cash Transfer routes
     Route::resource('cash-transfers', CashTransferController::class);
 
-    // User management routes (admin only)
-    Route::middleware('role:super_admin')->group(function () {
-        Route::resource('users', UserController::class);
-    });
-
-    // Backup routes (admin only)
-    Route::middleware('role:super_admin')->group(function () {
-        Route::get('/backup', [BackupController::class, 'create'])->name('backup.create');
-        Route::post('/backup', [BackupController::class, 'download'])->name('backup.download');
-    });
-
-    // Reports routes
+    // Report routes
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
     Route::get('/reports/inventory', [ReportController::class, 'inventory'])->name('reports.inventory');
+    Route::get('/reports/repairs', [ReportController::class, 'repairs'])->name('reports.repairs');
+    Route::get('/reports/financial', [ReportController::class, 'financial'])->name('reports.financial');
+
+    // Backup routes
+    Route::get('/backup', [BackupController::class, 'create'])->name('backup.create');
+    Route::post('/backup/download', [BackupController::class, 'download'])->name('backup.download');
+
+    // User management routes (Super Admin only)
+    Route::middleware(['role:super_admin'])->group(function () {
+        Route::resource('users', UserController::class);
+    });
 });
 
 require __DIR__.'/auth.php';
+
+// Profile routes
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [App\Http\Controllers\ProfileController::class, 'destroy'])->name('profile.destroy');
+});
