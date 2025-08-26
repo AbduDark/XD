@@ -124,36 +124,6 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'تم تحديث المنتج بنجاح');
     }
 
-    public function show(Product $product)
-    {
-        return view('products.show', compact('product'));
-    }
-
-    public function edit(Product $product)
-    {
-        $categories = ProductCategory::all();
-        return view('products.edit', compact('product', 'categories'));
-    }
-
-    public function update(Request $request, Product $product)
-    {
-        $request->validate([
-            'name_ar' => 'required|string|max:255',
-            'name_en' => 'nullable|string|max:255',
-            'category_id' => 'required|exists:product_categories,id',
-            'code' => 'nullable|string|unique:products,code,' . $product->id,
-            'purchase_price' => 'required|numeric|min:0',
-            'selling_price' => 'required|numeric|min:0',
-            'quantity' => 'required|integer|min:0',
-            'min_quantity' => 'nullable|integer|min:0',
-            'description' => 'nullable|string',
-        ]);
-
-        $product->update($request->all());
-
-        return redirect()->route('products.index')->with('success', 'تم تحديث المنتج بنجاح');
-    }
-
     public function destroy(Product $product)
     {
         try {

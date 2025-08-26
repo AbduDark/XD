@@ -1,4 +1,3 @@
-
 @extends('layouts.app')
 
 @section('header')
@@ -12,7 +11,7 @@
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6 text-gray-900 dark:text-gray-100">
-                
+
                 <!-- Header with Add Button -->
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-lg font-semibold">إدارة المنتجات</h3>
@@ -92,23 +91,26 @@
                                     <div class="flex gap-2">
                                         <a href="{{ route('products.show', $product) }}" 
                                            class="btn btn-info btn-sm" 
-                                           title="عرض التفاصيل"
+                                           title="عرض المنتج"
                                            data-tooltip="عرض تفاصيل المنتج">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                         <a href="{{ route('products.edit', $product) }}" 
-                                           class="btn btn-warning btn-sm"
+                                           class="btn btn-warning btn-sm" 
                                            title="تعديل المنتج"
                                            data-tooltip="تعديل بيانات المنتج">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <button type="button" 
-                                                class="btn btn-danger btn-sm" 
-                                                onclick="confirmDelete({{ $product->id }}, '{{ $product->name_ar }}')"
-                                                title="حذف المنتج"
-                                                data-tooltip="حذف المنتج نهائياً">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                        <form method="POST" action="{{ route('products.destroy', $product) }}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف المنتج؟')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" 
+                                                    class="btn btn-danger btn-sm" 
+                                                    title="حذف المنتج"
+                                                    data-tooltip="حذف المنتج نهائياً">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>

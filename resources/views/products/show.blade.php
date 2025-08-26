@@ -199,10 +199,10 @@
                 <button type="button" onclick="hideModal(document.getElementById('deleteModal'))" class="btn btn-secondary">
                     إلغاء
                 </button>
-                <form id="deleteForm" method="POST" style="display: inline;">
+                <form id="deleteForm" method="POST" action="{{ route('products.destroy', $product) }}" style="display: inline;">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn btn-danger">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('هل أنت متأكد من حذف المنتج؟')">
                         حذف نهائياً
                     </button>
                 </form>

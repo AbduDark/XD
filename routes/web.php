@@ -35,24 +35,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/products', [ProductController::class, 'apiIndex']);
     });
 
-    // Products Routes
-    Route::resource('products', ProductController::class);
-
-// API routes for dashboard
-Route::prefix('api')->middleware('auth')->group(function () {
-    Route::get('/dashboard/recent-invoices', [DashboardController::class, 'recentInvoices']);
-    Route::get('/dashboard/recent-repairs', [DashboardController::class, 'recentRepairs']);
-    Route::get('/dashboard/sales-chart', [DashboardController::class, 'salesChart']);
-    Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
-    Route::get('/dashboard/weekly-stats', [DashboardController::class, 'weeklyStats']);
-    Route::get('/dashboard/monthly-stats', [DashboardController::class, 'monthlyStats']);
-    Route::get('/dashboard/product-categories', [DashboardController::class, 'productCategories']);
-    Route::get('/dashboard/repair-stats', [DashboardController::class, 'repairStats']);
-    Route::get('/dashboard/inventory-alerts', [DashboardController::class, 'inventoryAlerts']);
-    Route::get('/products', [ProductController::class, 'apiIndex']);
-    Route::get('/products/search', [ProductController::class, 'search']);
-});
-
     // Product routes
     Route::resource('products', ProductController::class);
     Route::get('/products/search/api', [ProductController::class, 'search'])->name('products.search');
