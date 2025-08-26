@@ -101,16 +101,13 @@
                                            data-tooltip="تعديل بيانات المنتج">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <form method="POST" action="{{ route('products.destroy', $product) }}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف المنتج؟')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" 
-                                                    class="btn btn-danger btn-sm" 
-                                                    title="حذف المنتج"
-                                                    data-tooltip="حذف المنتج نهائياً">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
+                                        <button type="button" 
+                                                onclick="confirmDelete({{ $product->id }}, '{{ $product->name_ar }}')"
+                                                class="btn btn-danger btn-sm" 
+                                                title="حذف المنتج"
+                                                data-tooltip="حذف المنتج نهائياً">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -176,20 +173,32 @@
 function confirmDelete(productId, productName) {
     document.getElementById('productName').textContent = productName;
     document.getElementById('deleteForm').action = '/products/' + productId;
-    showModal('deleteModal');
+    
+    // Show modal using the global function
+    if (typeof showModal === 'function') {
+        showModal('deleteModal');
+    } else {
+        // Fallback if showModal is not available
+        document.getElementById('deleteModal').classList.remove('hidden');
+    }
 }
 
-// Show success/error messages
-@if(session('success'))
-    showToast('{{ session('success') }}', 'success');
-@endif
-
-@if(session('error'))
-    showToast('{{ session('error') }}', 'error');
-@endif
-
-// Add search functionality
+// Show success/error messages only if functions are available
 document.addEventListener('DOMContentLoaded', function() {
+    // Show messages
+    @if(session('success'))
+        if (typeof showToast === 'function') {
+            showToast('{{ session('success') }}', 'success');
+        }
+    @endif
+
+    @if(session('error'))
+        if (typeof showToast === 'function') {
+            showToast('{{ session('error') }}', 'error');
+        }
+    @endif
+
+    // Add search functionality
     const searchInput = document.querySelector('input[name="search"]');
     if (searchInput) {
         searchInput.addEventListener('input', debounce(function() {
@@ -211,5 +220,26 @@ function debounce(func, wait) {
         timeout = setTimeout(later, wait);
     };
 }
+
+// Manual modal functions if global ones are not available
+function hideModalManual(modalElement) {
+    if (modalElement) {
+        modalElement.classList.add('hidden');
+    }
+}
+
+// Override the hideModal call in the modal
+document.addEventListener('DOMContentLoaded', function() {
+    const cancelButton = document.querySelector('#deleteModal button[onclick*="hideModal"]');
+    if (cancelButton) {
+        cancelButton.onclick = function() {
+            if (typeof hideModal === 'function') {
+                hideModal(document.getElementById('deleteModal'));
+            } else {
+                hideModalManual(document.getElementById('deleteModal'));
+            }
+        };
+    }
+});
 </script>
 @endsection
