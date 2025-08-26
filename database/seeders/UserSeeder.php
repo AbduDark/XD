@@ -29,5 +29,13 @@ class UserSeeder extends Seeder
             'is_active' => true,
             'email_verified_at' => now(),
         ]);
+        User::create([
+            'name' => 'الحسيني مستخدم',
+            'email' => 'emlpoy@employ.com',
+            'password' => Hash::make('employ@1234'),
+            'role' => 'employee',
+            'is_active' => true,
+            'email_verified_at' => now(),
+        ]);
     }
 }

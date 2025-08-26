@@ -1,4 +1,3 @@
-
 <?php
 
 namespace Database\Seeders;
@@ -16,7 +15,7 @@ class RepairSeeder extends Seeder
         $devices = ['iPhone 14 Pro', 'Samsung Galaxy S23', 'iPad Air', 'MacBook Pro', 'Laptop HP', 'Tablet Samsung'];
         $problems = ['شاشة مكسورة', 'بطارية تالفة', 'مشكلة في الشحن', 'مشكلة في الصوت', 'بطء في الأداء', 'مشكلة في الكاميرا'];
         $statuses = ['pending', 'in_progress', 'completed', 'delivered'];
-        
+
         for ($i = 1; $i <= 30; $i++) {
             Repair::create([
                 'repair_number' => 'REP-' . str_pad($i, 6, '0', STR_PAD_LEFT),

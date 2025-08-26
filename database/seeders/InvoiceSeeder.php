@@ -1,4 +1,3 @@
-
 <?php
 
 namespace Database\Seeders;
@@ -16,7 +15,7 @@ class InvoiceSeeder extends Seeder
     {
         $products = Product::all();
         $users = User::all();
-        
+
         // إنشاء 50 فاتورة
         for ($i = 1; $i <= 50; $i++) {
             $invoice = Invoice::create([
@@ -33,13 +32,13 @@ class InvoiceSeeder extends Seeder
 
             $total = 0;
             $itemsCount = rand(1, 5);
-            
+
             for ($j = 0; $j < $itemsCount; $j++) {
                 $product = $products->random();
                 $quantity = rand(1, 3);
                 $price = $product->selling_price;
                 $subtotal = $quantity * $price;
-                
+
                 InvoiceItem::create([
                     'invoice_id' => $invoice->id,
                     'product_id' => $product->id,
@@ -47,10 +46,10 @@ class InvoiceSeeder extends Seeder
                     'price' => $price,
                     'subtotal' => $subtotal,
                 ]);
-                
+
                 $total += $subtotal;
             }
-            
+
             $finalAmount = $total - $invoice->discount;
             $invoice->update([
                 'total_amount' => $total,

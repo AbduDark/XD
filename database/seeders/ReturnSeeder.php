@@ -1,4 +1,3 @@
-
 <?php
 
 namespace Database\Seeders;
@@ -16,7 +15,7 @@ class ReturnSeeder extends Seeder
         $products = Product::all();
         $users = User::all();
         $reasons = ['منتج معيب', 'عدم رضا العميل', 'مقاس خاطئ', 'لون خاطئ', 'استبدال بمنتج آخر'];
-        
+
         for ($i = 1; $i <= 15; $i++) {
             ReturnItem::create([
                 'return_number' => 'RET-' . str_pad($i, 6, '0', STR_PAD_LEFT),

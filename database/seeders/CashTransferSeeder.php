@@ -1,4 +1,3 @@
-
 <?php
 
 namespace Database\Seeders;
@@ -22,7 +21,7 @@ class CashTransferSeeder extends Seeder
             'شراء معدات',
             'أرباح يومية'
         ];
-        
+
         for ($i = 1; $i <= 25; $i++) {
             CashTransfer::create([
                 'type' => $types[rand(0, 1)],
