@@ -1,6 +1,15 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\ReturnController;
+use App\Http\Controllers\RepairController;
+use App\Http\Controllers\CashTransferController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\BackupController;
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -13,38 +22,40 @@ Route::get('/', function () {
 });
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
-    
-    // Products
-    Route::resource('products', App\Http\Controllers\ProductController::class);
-    Route::get('/products/search/api', [App\Http\Controllers\ProductController::class, 'search'])->name('products.search');
-    
-    // Invoices
-    Route::resource('invoices', App\Http\Controllers\InvoiceController::class);
-    Route::get('/invoices/{invoice}/print', [App\Http\Controllers\InvoiceController::class, 'print'])->name('invoices.print');
-    
-    // Returns
-    Route::resource('returns', App\Http\Controllers\ReturnController::class);
-    
-    // Repairs
-    Route::resource('repairs', App\Http\Controllers\RepairController::class);
-    
-    // Cash Transfers
-    Route::resource('cash-transfers', App\Http\Controllers\CashTransferController::class);
-    
-    // Reports
-    Route::get('/reports', [App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
-    Route::get('/reports/sales', [App\Http\Controllers\ReportController::class, 'sales'])->name('reports.sales');
-    Route::get('/reports/inventory', [App\Http\Controllers\ReportController::class, 'inventory'])->name('reports.inventory');
-    
-    // Users (Super Admin only)
-    Route::middleware(['auth', 'role:super_admin'])->group(function () {
-        Route::resource('users', App\Http\Controllers\UserController::class);
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Product routes
+    Route::resource('products', ProductController::class);
+    Route::get('/products/search/api', [ProductController::class, 'search'])->name('products.search');
+
+    // Invoice routes
+    Route::resource('invoices', InvoiceController::class);
+    Route::get('/invoices/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
+
+    // Return routes
+    Route::resource('returns', ReturnController::class);
+
+    // Repair routes
+    Route::resource('repairs', RepairController::class);
+
+    // Cash Transfer routes
+    Route::resource('cash-transfers', CashTransferController::class);
+
+    // User management routes (admin only)
+    Route::middleware('role:super_admin')->group(function () {
+        Route::resource('users', UserController::class);
     });
-    
-    // Backup
-    Route::get('/backup', [App\Http\Controllers\BackupController::class, 'create'])->name('backup.create');
-    Route::post('/backup', [App\Http\Controllers\BackupController::class, 'download'])->name('backup.download');
+
+    // Backup routes (admin only)
+    Route::middleware('role:super_admin')->group(function () {
+        Route::get('/backup', [BackupController::class, 'create'])->name('backup.create');
+        Route::post('/backup', [BackupController::class, 'download'])->name('backup.download');
+    });
+
+    // Reports routes
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
+    Route::get('/reports/inventory', [ReportController::class, 'inventory'])->name('reports.inventory');
 });
 
 require __DIR__.'/auth.php';
