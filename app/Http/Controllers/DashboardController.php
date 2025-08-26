@@ -1,4 +1,3 @@
-
 <?php
 
 namespace App\Http\Controllers;
@@ -17,7 +16,7 @@ class DashboardController extends Controller
     {
         $today = Carbon::today();
         $thisMonth = Carbon::now()->startOfMonth();
-        
+
         $stats = [
             'today_sales' => Invoice::whereDate('created_at', $today)->sum('total'),
             'today_sales_count' => Invoice::whereDate('created_at', $today)->count(),
