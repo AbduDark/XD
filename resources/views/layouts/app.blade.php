@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -11,11 +10,16 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
+
     <style>
         body { font-family: 'Tajawal', sans-serif; }
         .theme-toggle { transition: all 0.3s ease; }
@@ -126,7 +130,7 @@
 
         // Check for saved theme preference or default to light
         const currentTheme = localStorage.getItem('theme') || 'light';
-        
+
         if (currentTheme === 'dark') {
             body.classList.add('dark');
             darkIcon.classList.add('hidden');
@@ -138,7 +142,7 @@
 
         themeToggle.addEventListener('click', function() {
             body.classList.toggle('dark');
-            
+
             if (body.classList.contains('dark')) {
                 localStorage.setItem('theme', 'dark');
                 darkIcon.classList.add('hidden');
