@@ -1,4 +1,3 @@
-
 // Import Bootstrap
 import './bootstrap';
 
@@ -8,7 +7,7 @@ import Chart from 'chart.js/auto';
 // Global variables
 window.Chart = Chart;
 
-// DOM Content Loaded
+// Initialize application
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
 });
@@ -16,24 +15,24 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializeApp() {
     // Initialize navigation
     initializeNavigation();
-    
+
     // Initialize dashboard
     if (document.getElementById('salesChart')) {
         initializeDashboard();
     }
-    
+
     // Initialize forms
     initializeForms();
-    
+
     // Initialize modals
     initializeModals();
-    
+
     // Initialize tooltips
     initializeTooltips();
-    
+
     // Initialize search
     initializeSearch();
-    
+
     // Update statistics every 30 seconds
     if (document.querySelector('.dashboard-stats')) {
         setInterval(updateDashboardStats, 30000);
@@ -45,13 +44,13 @@ function initializeNavigation() {
     // User menu toggle
     const userMenuButton = document.getElementById('userMenuButton');
     const userMenu = document.getElementById('userMenu');
-    
+
     if (userMenuButton && userMenu) {
         userMenuButton.addEventListener('click', function(e) {
             e.stopPropagation();
             userMenu.classList.toggle('hidden');
         });
-        
+
         // Close menu when clicking outside
         document.addEventListener('click', function(e) {
             if (!userMenu.contains(e.target) && !userMenuButton.contains(e.target)) {
@@ -59,11 +58,11 @@ function initializeNavigation() {
             }
         });
     }
-    
+
     // Mobile menu toggle (kept for tablet support)
     const mobileMenuButton = document.getElementById('mobileMenuButton');
     const mobileMenu = document.getElementById('mobileMenu');
-    
+
     if (mobileMenuButton && mobileMenu) {
         mobileMenuButton.addEventListener('click', function() {
             mobileMenu.classList.toggle('hidden');
@@ -99,7 +98,7 @@ function loadDashboardData() {
         console.error('Error loading recent invoices:', error);
         displayRecentInvoices([]);
     });
-    
+
     // Load recent repairs
     fetch('/api/dashboard/recent-repairs', {
         headers: {
@@ -125,12 +124,12 @@ function loadDashboardData() {
 function displayRecentInvoices(invoices) {
     const container = document.getElementById('recentInvoices');
     if (!container) return;
-    
+
     if (invoices.length === 0) {
         container.innerHTML = '<div class="text-center py-8"><i class="fas fa-receipt text-gray-300 text-4xl mb-4"></i><p class="text-gray-500">لا توجد فواتير حديثة</p></div>';
         return;
     }
-    
+
     container.innerHTML = invoices.map(invoice => `
         <div class="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg hover:from-blue-100 hover:to-indigo-100 transition-all duration-200 border border-blue-100">
             <div class="flex items-center">
@@ -153,12 +152,12 @@ function displayRecentInvoices(invoices) {
 function displayRecentRepairs(repairs) {
     const container = document.getElementById('recentRepairs');
     if (!container) return;
-    
+
     if (repairs.length === 0) {
         container.innerHTML = '<div class="text-center py-8"><i class="fas fa-tools text-gray-300 text-4xl mb-4"></i><p class="text-gray-500">لا توجد صيانات حديثة</p></div>';
         return;
     }
-    
+
     container.innerHTML = repairs.map(repair => `
         <div class="flex items-center justify-between p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg hover:from-yellow-100 hover:to-orange-100 transition-all duration-200 border border-yellow-100">
             <div class="flex items-center">
@@ -181,7 +180,7 @@ function displayRecentRepairs(repairs) {
 function initializeSalesChart() {
     const ctx = document.getElementById('salesChart');
     if (!ctx) return;
-    
+
     fetch('/api/dashboard/sales-chart', {
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -310,7 +309,7 @@ function initializeForms() {
     invoiceForms.forEach(form => {
         initializeInvoiceForm(form);
     });
-    
+
     // Form validation
     const forms = document.querySelectorAll('form[data-validate="true"]');
     forms.forEach(form => {
@@ -320,13 +319,13 @@ function initializeForms() {
             }
         });
     });
-    
+
     // Auto-save drafts
     const draftForms = document.querySelectorAll('form[data-autosave="true"]');
     draftForms.forEach(form => {
         initializeAutoSave(form);
     });
-    
+
     // Initialize product search with autocomplete
     initializeProductSearch();
 }
@@ -346,7 +345,7 @@ function initializeProductSearch() {
 
 function searchProducts(query, inputElement) {
     if (query.length < 2) return;
-    
+
     fetch(`/api/products/search?q=${encodeURIComponent(query)}`, {
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
@@ -368,12 +367,12 @@ function showProductSuggestions(products, inputElement) {
     if (existingSuggestions) {
         existingSuggestions.remove();
     }
-    
+
     if (products.length === 0) return;
-    
+
     const suggestions = document.createElement('div');
     suggestions.className = 'product-suggestions absolute bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto z-50 w-full mt-1';
-    
+
     suggestions.innerHTML = products.map(product => `
         <div class="product-suggestion flex items-center justify-between p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100" data-product-id="${product.id}" data-product-name="${product.name}" data-product-price="${product.price}">
             <div>
@@ -383,17 +382,17 @@ function showProductSuggestions(products, inputElement) {
             <p class="font-bold text-blue-600">${formatCurrency(product.price)}</p>
         </div>
     `).join('');
-    
+
     inputElement.parentElement.style.position = 'relative';
     inputElement.parentElement.appendChild(suggestions);
-    
+
     // Handle suggestion clicks
     suggestions.addEventListener('click', function(e) {
         const suggestion = e.target.closest('.product-suggestion');
         if (suggestion) {
             inputElement.value = suggestion.dataset.productName;
             suggestions.remove();
-            
+
             // Trigger product selection event
             const event = new CustomEvent('productSelected', {
                 detail: {
@@ -457,10 +456,10 @@ function showToast(message, type = 'info', duration = 5000) {
         toastContainer.className = 'fixed top-4 left-4 z-50 space-y-2';
         document.body.appendChild(toastContainer);
     }
-    
+
     const toast = document.createElement('div');
     toast.className = `toast max-w-sm bg-white border border-gray-200 rounded-xl shadow-lg p-4 transform transition-all duration-300 ${getToastTypeClass(type)}`;
-    
+
     const icon = getToastIcon(type);
     toast.innerHTML = `
         <div class="flex items-center">
@@ -477,19 +476,19 @@ function showToast(message, type = 'info', duration = 5000) {
             </div>
         </div>
     `;
-    
+
     // Animation
     toast.style.transform = 'translateY(-20px)';
     toast.style.opacity = '0';
-    
+
     document.getElementById('toastContainer').appendChild(toast);
-    
+
     // Animate in
     setTimeout(() => {
         toast.style.transform = 'translateY(0)';
         toast.style.opacity = '1';
     }, 100);
-    
+
     // Auto remove after duration
     setTimeout(() => {
         if (toast.parentElement) {
@@ -527,19 +526,19 @@ function initializeModals() {
         if (e.target.dataset.modal) {
             showModal(e.target.dataset.modal);
         }
-        
+
         if (e.target.classList.contains('modal-close') || e.target.closest('.modal-close')) {
             hideModal(e.target.closest('.modal-overlay'));
         }
     });
-    
+
     // Close modal on overlay click
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('modal-overlay')) {
             hideModal(e.target);
         }
     });
-    
+
     // Close modal on ESC key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
@@ -557,12 +556,12 @@ function showModal(modalId) {
         modal.classList.remove('hidden');
         modal.querySelector('.modal-content').style.transform = 'scale(0.9)';
         modal.querySelector('.modal-content').style.opacity = '0';
-        
+
         setTimeout(() => {
             modal.querySelector('.modal-content').style.transform = 'scale(1)';
             modal.querySelector('.modal-content').style.opacity = '1';
         }, 100);
-        
+
         document.body.style.overflow = 'hidden';
     }
 }
@@ -572,7 +571,7 @@ function hideModal(modal) {
         const modalContent = modal.querySelector('.modal-content');
         modalContent.style.transform = 'scale(0.9)';
         modalContent.style.opacity = '0';
-        
+
         setTimeout(() => {
             modal.classList.add('hidden');
             document.body.style.overflow = '';
@@ -583,10 +582,10 @@ function hideModal(modal) {
 // Initialize search functionality
 function initializeSearch() {
     const searchInputs = document.querySelectorAll('.search-input');
-    
+
     searchInputs.forEach(input => {
         let searchTimeout;
-        
+
         input.addEventListener('input', function() {
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
@@ -599,7 +598,7 @@ function initializeSearch() {
 // Initialize tooltips
 function initializeTooltips() {
     const tooltipElements = document.querySelectorAll('[data-tooltip]');
-    
+
     tooltipElements.forEach(element => {
         element.addEventListener('mouseenter', showTooltip);
         element.addEventListener('mouseleave', hideTooltip);
@@ -611,13 +610,13 @@ function showTooltip(e) {
     const tooltip = document.createElement('div');
     tooltip.className = 'tooltip bg-gray-900 text-white text-sm rounded py-2 px-3 absolute z-50 pointer-events-none shadow-lg';
     tooltip.textContent = text;
-    
+
     document.body.appendChild(tooltip);
-    
+
     const rect = e.target.getBoundingClientRect();
     tooltip.style.top = (rect.top - tooltip.offsetHeight - 8) + 'px';
     tooltip.style.left = (rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2)) + 'px';
-    
+
     // Animate in
     tooltip.style.opacity = '0';
     tooltip.style.transform = 'translateY(5px)';
@@ -625,7 +624,7 @@ function showTooltip(e) {
         tooltip.style.opacity = '1';
         tooltip.style.transform = 'translateY(0)';
     }, 100);
-    
+
     e.target.tooltip = tooltip;
 }
 
@@ -643,7 +642,7 @@ function hideTooltip(e) {
 function validateForm(form) {
     let isValid = true;
     const requiredFields = form.querySelectorAll('[required]');
-    
+
     requiredFields.forEach(field => {
         if (!field.value.trim()) {
             showFieldError(field, 'هذا الحقل مطلوب');
@@ -652,25 +651,25 @@ function validateForm(form) {
             clearFieldError(field);
         }
     });
-    
+
     return isValid;
 }
 
 function showFieldError(field, message) {
     clearFieldError(field);
-    
+
     field.classList.add('border-red-500', 'bg-red-50');
-    
+
     const errorDiv = document.createElement('div');
     errorDiv.className = 'field-error text-red-500 text-sm mt-1 flex items-center';
     errorDiv.innerHTML = `<i class="fas fa-exclamation-circle ml-1"></i>${message}`;
-    
+
     field.parentNode.appendChild(errorDiv);
 }
 
 function clearFieldError(field) {
     field.classList.remove('border-red-500', 'bg-red-50');
-    
+
     const existingError = field.parentNode.querySelector('.field-error');
     if (existingError) {
         existingError.remove();
@@ -680,10 +679,10 @@ function clearFieldError(field) {
 // Auto-save functionality
 function initializeAutoSave(form) {
     const formKey = `autosave_${form.id || 'form'}`;
-    
+
     // Load saved data
     loadAutoSavedData(form, formKey);
-    
+
     // Save on input change
     form.addEventListener('input', debounce(() => {
         saveFormData(form, formKey);
@@ -693,21 +692,21 @@ function initializeAutoSave(form) {
 function saveFormData(form, key) {
     const formData = new FormData(form);
     const data = {};
-    
+
     for (let [name, value] of formData.entries()) {
         data[name] = value;
     }
-    
+
     localStorage.setItem(key, JSON.stringify(data));
 }
 
 function loadAutoSavedData(form, key) {
     const savedData = localStorage.getItem(key);
     if (!savedData) return;
-    
+
     try {
         const data = JSON.parse(savedData);
-        
+
         Object.entries(data).forEach(([name, value]) => {
             const input = form.querySelector(`[name="${name}"]`);
             if (input && input.value === '') {
@@ -736,12 +735,12 @@ function debounce(func, wait) {
 function printElement(elementId) {
     const element = document.getElementById(elementId);
     if (!element) return;
-    
+
     const printWindow = window.open('', '_blank');
     const cssLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
         .map(link => `<link rel="stylesheet" href="${link.href}">`)
         .join('');
-    
+
     printWindow.document.write(`
         <!DOCTYPE html>
         <html dir="rtl" lang="ar">
@@ -765,7 +764,7 @@ function printElement(elementId) {
         </body>
         </html>
     `);
-    
+
     printWindow.document.close();
 }
 
