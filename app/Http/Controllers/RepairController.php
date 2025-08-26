@@ -1,4 +1,3 @@
-
 <?php
 
 namespace App\Http\Controllers;
@@ -11,7 +10,7 @@ class RepairController extends Controller
     public function index()
     {
         $repairs = Repair::with('user')->orderBy('created_at', 'desc')->paginate(20);
-        
+
         return view('repairs.index', compact('repairs'));
     }
 
@@ -75,7 +74,7 @@ class RepairController extends Controller
     public function destroy(Repair $repair)
     {
         $repair->delete();
-        
+
         return redirect()->route('repairs.index')->with('success', 'تم حذف أمر الصيانة بنجاح');
     }
 }

@@ -29,7 +29,7 @@ class ProductController extends Controller
     public function search(Request $request)
     {
         $query = $request->get('q', '');
-        
+
         if (strlen($query) < 2) {
             return response()->json([]);
         }
@@ -129,13 +129,6 @@ class ProductController extends Controller
         $product->delete();
         return redirect()->route('products.index')->with('success', 'تم حذف المنتج بنجاح');
     }
+    
 
-    public function apiIndex()
-    {
-        $products = Product::select('id', 'name', 'price', 'quantity')
-            ->where('quantity', '>', 0)
-            ->get();
-
-        return response()->json($products);
-    }
 }

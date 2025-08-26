@@ -1,4 +1,3 @@
-
 <?php
 
 namespace App\Http\Controllers;
@@ -78,7 +77,7 @@ class DashboardController extends Controller
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
             $dayName = $date->locale('ar')->translatedFormat('l');
-            
+
             $dailySales = Invoice::whereDate('created_at', $date->format('Y-m-d'))
                 ->sum('total');
 
@@ -115,11 +114,11 @@ class DashboardController extends Controller
         $endOfWeek = Carbon::now()->endOfWeek();
 
         $weeklyData = collect();
-        
+
         for ($date = $startOfWeek->copy(); $date->lte($endOfWeek); $date->addDay()) {
             $sales = Invoice::whereDate('created_at', $date->format('Y-m-d'))->sum('total');
             $repairs = Repair::whereDate('created_at', $date->format('Y-m-d'))->count();
-            
+
             $weeklyData->push([
                 'date' => $date->format('Y-m-d'),
                 'day_name' => $date->locale('ar')->translatedFormat('l'),
@@ -147,7 +146,7 @@ class DashboardController extends Controller
             ->sum('total');
 
         // نسبة النمو
-        $growthRate = $lastMonthSales > 0 ? 
+        $growthRate = $lastMonthSales > 0 ?
             (($currentMonthSales - $lastMonthSales) / $lastMonthSales) * 100 : 0;
 
         // أفضل المنتجات مبيعاً هذا الشهر
