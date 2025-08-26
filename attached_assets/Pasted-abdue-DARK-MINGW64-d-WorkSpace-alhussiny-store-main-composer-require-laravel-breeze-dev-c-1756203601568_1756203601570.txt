@@ -1,0 +1,52 @@
+abdue@DARK MINGW64 /d/WorkSpace/alhussiny-store (main)
+$ composer require laravel/breeze --dev
+./composer.json has been updated
+Running composer update laravel/breeze
+Loading composer repositories with package information
+Updating dependencies
+Nothing to modify in lock file
+Writing lock file
+Installing dependencies from lock file (including require-dev)
+Package operations: 1 install, 0 updates, 0 removals
+  - Downloading laravel/breeze (v2.3.8)
+  - Installing laravel/breeze (v2.3.8): Extracting archive
+Generating optimized autoload files
+> Illuminate\Foundation\ComposerScripts::postAutoloadDump
+> @php artisan package:discover --ansi
+
+
+   ErrorException 
+
+  require(D:\WorkSpace\alhussiny-store\routes/auth.php): Failed to open stream: No such file or directory
+
+  at routes\web.php:50
+     46▕     Route::get('/backup', [App\Http\Controllers\BackupController::class, 'create'])->name('backup.create');
+     47▕     Route::post('/backup', [App\Http\Controllers\BackupController::class, 'download'])->name('backup.download');
+     48▕ });
+     49▕
+  ➜  50▕ require __DIR__.'/auth.php';
+     51▕
+
+  1   routes\web.php:50
+  2   vendor\laravel\framework\src\Illuminate\Routing\RouteFileRegistrar.php:35
+
+Script @php artisan package:discover --ansi handling the post-autoload-dump event returned with error code 1
+
+abdue@DARK MINGW64 /d/WorkSpace/alhussiny-store (main)
+$ php artisan breeze:install blade --dark
+
+
+   ErrorException 
+
+  require(D:\WorkSpace\alhussiny-store\routes/auth.php): Failed to open stream: No such file or directory
+
+  at routes\web.php:50
+     46▕     Route::get('/backup', [App\Http\Controllers\BackupController::class, 'create'])->name('backup.create');
+     47▕     Route::post('/backup', [App\Http\Controllers\BackupController::class, 'download'])->name('backup.download');
+     48▕ });
+     49▕
+  ➜  50▕ require __DIR__.'/auth.php';
+     51▕
+
+  1   routes\web.php:50
+  2   vendor\laravel\framework\src\Illuminate\Routing\RouteFileRegistrar.php:35
