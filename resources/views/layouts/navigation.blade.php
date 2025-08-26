@@ -1,4 +1,3 @@
-
 <nav x-data="{ open: false }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -14,36 +13,26 @@
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('لوحة التحكم') }}
+                        {{ __('الرئيسية') }}
                     </x-nav-link>
-                    
                     <x-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
                         {{ __('المنتجات') }}
                     </x-nav-link>
-                    
                     <x-nav-link :href="route('invoices.index')" :active="request()->routeIs('invoices.*')">
                         {{ __('الفواتير') }}
                     </x-nav-link>
-                    
                     <x-nav-link :href="route('returns.index')" :active="request()->routeIs('returns.*')">
                         {{ __('المرتجعات') }}
                     </x-nav-link>
-                    
                     <x-nav-link :href="route('repairs.index')" :active="request()->routeIs('repairs.*')">
                         {{ __('الصيانة') }}
                     </x-nav-link>
-                    
                     <x-nav-link :href="route('cash-transfers.index')" :active="request()->routeIs('cash-transfers.*')">
-                        {{ __('الخزينة') }}
+                        {{ __('حركة النقدية') }}
                     </x-nav-link>
-                    
+                    @if(auth()->user()->role === 'admin')
                     <x-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
                         {{ __('التقارير') }}
-                    </x-nav-link>
-                    
-                    @if(auth()->user()->isSuperAdmin())
-                    <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
-                        {{ __('المستخدمين') }}
                     </x-nav-link>
                     @endif
                 </div>
@@ -99,8 +88,28 @@
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('لوحة التحكم') }}
+                {{ __('الرئيسية') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('products.index')" :active="request()->routeIs('products.*')">
+                {{ __('المنتجات') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('invoices.index')" :active="request()->routeIs('invoices.*')">
+                {{ __('الفواتير') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('returns.index')" :active="request()->routeIs('returns.*')">
+                {{ __('المرتجعات') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('repairs.index')" :active="request()->routeIs('repairs.*')">
+                {{ __('الصيانة') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('cash-transfers.index')" :active="request()->routeIs('cash-transfers.*')">
+                {{ __('حركة النقدية') }}
+            </x-responsive-nav-link>
+            @if(auth()->user()->role === 'admin')
+            <x-responsive-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
+                {{ __('التقارير') }}
+            </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->
