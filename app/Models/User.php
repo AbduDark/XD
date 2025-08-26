@@ -20,6 +20,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'is_active',
     ];
 
     /**
@@ -43,5 +45,40 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    public function repairs()
+    {
+        return $this->hasMany(Repair::class);
+    }
+
+    public function cashTransfers()
+    {
+        return $this->hasMany(CashTransfer::class);
+    }
+
+    public function returns()
+    {
+        return $this->hasMany(ReturnItem::class);
+    }
+
+    public function isSuperAdmin()
+    {
+        return $this->role === 'super_admin';
+    }
+
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isEmployee()
+    {
+        return $this->role === 'employee';
     }
 }
