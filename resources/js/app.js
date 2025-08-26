@@ -30,6 +30,14 @@ function initializeApp() {
     
     // Initialize tooltips
     initializeTooltips();
+    
+    // Initialize search
+    initializeSearch();
+    
+    // Update statistics every 30 seconds
+    if (document.querySelector('.dashboard-stats')) {
+        setInterval(updateDashboardStats, 30000);
+    }
 }
 
 // Navigation Functions
@@ -52,7 +60,7 @@ function initializeNavigation() {
         });
     }
     
-    // Mobile menu toggle
+    // Mobile menu toggle (kept for tablet support)
     const mobileMenuButton = document.getElementById('mobileMenuButton');
     const mobileMenu = document.getElementById('mobileMenu');
     
@@ -67,28 +75,51 @@ function initializeNavigation() {
 function initializeDashboard() {
     loadDashboardData();
     initializeSalesChart();
+    initializeRealtimeUpdates();
 }
 
 function loadDashboardData() {
     // Load recent invoices
-    fetch('/api/dashboard/recent-invoices')
-        .then(response => response.json())
-        .then(data => {
-            displayRecentInvoices(data);
-        })
-        .catch(error => {
-            console.error('Error loading recent invoices:', error);
-        });
+    fetch('/api/dashboard/recent-invoices', {
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        displayRecentInvoices(data);
+    })
+    .catch(error => {
+        console.error('Error loading recent invoices:', error);
+        displayRecentInvoices([]);
+    });
     
     // Load recent repairs
-    fetch('/api/dashboard/recent-repairs')
-        .then(response => response.json())
-        .then(data => {
-            displayRecentRepairs(data);
-        })
-        .catch(error => {
-            console.error('Error loading recent repairs:', error);
-        });
+    fetch('/api/dashboard/recent-repairs', {
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        displayRecentRepairs(data);
+    })
+    .catch(error => {
+        console.error('Error loading recent repairs:', error);
+        displayRecentRepairs([]);
+    });
 }
 
 function displayRecentInvoices(invoices) {
@@ -96,19 +127,24 @@ function displayRecentInvoices(invoices) {
     if (!container) return;
     
     if (invoices.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-center">لا توجد فواتير حديثة</p>';
+        container.innerHTML = '<div class="text-center py-8"><i class="fas fa-receipt text-gray-300 text-4xl mb-4"></i><p class="text-gray-500">لا توجد فواتير حديثة</p></div>';
         return;
     }
     
     container.innerHTML = invoices.map(invoice => `
-        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-            <div>
-                <p class="font-medium text-gray-900">فاتورة #${invoice.id}</p>
-                <p class="text-sm text-gray-600">${invoice.customer_name || 'عميل نقدي'}</p>
+        <div class="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg hover:from-blue-100 hover:to-indigo-100 transition-all duration-200 border border-blue-100">
+            <div class="flex items-center">
+                <div class="p-2 bg-blue-500 rounded-full ml-3">
+                    <i class="fas fa-receipt text-white text-sm"></i>
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-900">فاتورة #${invoice.id}</p>
+                    <p class="text-sm text-gray-600">${invoice.customer_name || 'عميل نقدي'}</p>
+                </div>
             </div>
             <div class="text-left">
-                <p class="font-medium text-green-600">${formatCurrency(invoice.total)}</p>
-                <p class="text-sm text-gray-500">${formatDate(invoice.created_at)}</p>
+                <p class="font-bold text-green-600 text-lg">${formatCurrency(invoice.total)}</p>
+                <p class="text-xs text-gray-500">${formatDate(invoice.created_at)}</p>
             </div>
         </div>
     `).join('');
@@ -119,19 +155,24 @@ function displayRecentRepairs(repairs) {
     if (!container) return;
     
     if (repairs.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-center">لا توجد صيانات حديثة</p>';
+        container.innerHTML = '<div class="text-center py-8"><i class="fas fa-tools text-gray-300 text-4xl mb-4"></i><p class="text-gray-500">لا توجد صيانات حديثة</p></div>';
         return;
     }
     
     container.innerHTML = repairs.map(repair => `
-        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-            <div>
-                <p class="font-medium text-gray-900">${repair.device_type}</p>
-                <p class="text-sm text-gray-600">${repair.customer_name}</p>
+        <div class="flex items-center justify-between p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg hover:from-yellow-100 hover:to-orange-100 transition-all duration-200 border border-yellow-100">
+            <div class="flex items-center">
+                <div class="p-2 bg-yellow-500 rounded-full ml-3">
+                    <i class="fas fa-tools text-white text-sm"></i>
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-900">${repair.device_type}</p>
+                    <p class="text-sm text-gray-600">${repair.customer_name}</p>
+                </div>
             </div>
             <div class="text-left">
-                <span class="badge ${getStatusBadgeClass(repair.status)}">${getStatusText(repair.status)}</span>
-                <p class="text-sm text-gray-500 mt-1">${formatDate(repair.created_at)}</p>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(repair.status)}">${getStatusText(repair.status)}</span>
+                <p class="text-xs text-gray-500 mt-1">${formatDate(repair.created_at)}</p>
             </div>
         </div>
     `).join('');
@@ -141,48 +182,125 @@ function initializeSalesChart() {
     const ctx = document.getElementById('salesChart');
     if (!ctx) return;
     
-    fetch('/api/dashboard/sales-chart')
-        .then(response => response.json())
-        .then(data => {
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: data.labels,
-                    datasets: [{
-                        label: 'المبيعات (جنيه)',
-                        data: data.sales,
-                        borderColor: 'rgb(59, 130, 246)',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        tension: 0.1,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        title: {
-                            display: false
+    fetch('/api/dashboard/sales-chart', {
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.labels || [],
+                datasets: [{
+                    label: 'المبيعات (جنيه)',
+                    data: data.sales || [],
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: 'rgb(59, 130, 246)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            font: {
+                                family: 'Cairo',
+                                size: 14
+                            }
                         }
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return formatCurrency(value);
-                                }
+                    title: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return formatCurrency(value);
+                            },
+                            font: {
+                                family: 'Cairo'
                             }
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                family: 'Cairo'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(0,0,0,0.1)'
                         }
                     }
                 }
-            });
-        })
-        .catch(error => {
-            console.error('Error loading sales chart:', error);
+            }
         });
+    })
+    .catch(error => {
+        console.error('Error loading sales chart:', error);
+        ctx.parentElement.innerHTML = '<div class="flex items-center justify-center h-64"><p class="text-gray-500">خطأ في تحميل الرسم البياني</p></div>';
+    });
+}
+
+function initializeRealtimeUpdates() {
+    // Update dashboard stats every 30 seconds
+    setInterval(() => {
+        updateDashboardStats();
+    }, 30000);
+}
+
+function updateDashboardStats() {
+    fetch('/api/dashboard/stats', {
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Update stats with animation
+        animateStatUpdate('totalProducts', data.totalProducts);
+        animateStatUpdate('todaySales', formatCurrency(data.todaySales));
+        animateStatUpdate('pendingRepairs', data.pendingRepairs);
+        animateStatUpdate('lowStock', data.lowStock);
+    })
+    .catch(error => {
+        console.error('Error updating dashboard stats:', error);
+    });
+}
+
+function animateStatUpdate(elementId, newValue) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.style.transform = 'scale(1.1)';
+        element.style.transition = 'transform 0.3s ease';
+        setTimeout(() => {
+            element.textContent = newValue;
+            element.style.transform = 'scale(1)';
+        }, 150);
+    }
 }
 
 // Form Functions
@@ -208,123 +326,198 @@ function initializeForms() {
     draftForms.forEach(form => {
         initializeAutoSave(form);
     });
+    
+    // Initialize product search with autocomplete
+    initializeProductSearch();
 }
 
-function initializeInvoiceForm(form) {
-    const itemsContainer = form.querySelector('.invoice-items');
-    const addItemBtn = form.querySelector('.add-item-btn');
-    const totalInput = form.querySelector('input[name="total"]');
-    
-    if (!itemsContainer || !addItemBtn) return;
-    
-    // Add new item
-    addItemBtn.addEventListener('click', function() {
-        addInvoiceItem(itemsContainer);
-        calculateInvoiceTotal(form);
+function initializeProductSearch() {
+    const productSearchInputs = document.querySelectorAll('.product-search');
+    productSearchInputs.forEach(input => {
+        let searchTimeout;
+        input.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                searchProducts(this.value, this);
+            }, 300);
+        });
     });
+}
+
+function searchProducts(query, inputElement) {
+    if (query.length < 2) return;
     
-    // Remove item
-    itemsContainer.addEventListener('click', function(e) {
-        if (e.target.classList.contains('remove-item-btn')) {
-            e.target.closest('.invoice-item').remove();
-            calculateInvoiceTotal(form);
+    fetch(`/api/products/search?q=${encodeURIComponent(query)}`, {
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(products => {
+        showProductSuggestions(products, inputElement);
+    })
+    .catch(error => {
+        console.error('Error searching products:', error);
+    });
+}
+
+function showProductSuggestions(products, inputElement) {
+    // Remove existing suggestions
+    const existingSuggestions = document.querySelector('.product-suggestions');
+    if (existingSuggestions) {
+        existingSuggestions.remove();
+    }
+    
+    if (products.length === 0) return;
+    
+    const suggestions = document.createElement('div');
+    suggestions.className = 'product-suggestions absolute bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto z-50 w-full mt-1';
+    
+    suggestions.innerHTML = products.map(product => `
+        <div class="product-suggestion flex items-center justify-between p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100" data-product-id="${product.id}" data-product-name="${product.name}" data-product-price="${product.price}">
+            <div>
+                <p class="font-medium text-gray-900">${product.name}</p>
+                <p class="text-sm text-gray-600">المتاح: ${product.quantity}</p>
+            </div>
+            <p class="font-bold text-blue-600">${formatCurrency(product.price)}</p>
+        </div>
+    `).join('');
+    
+    inputElement.parentElement.style.position = 'relative';
+    inputElement.parentElement.appendChild(suggestions);
+    
+    // Handle suggestion clicks
+    suggestions.addEventListener('click', function(e) {
+        const suggestion = e.target.closest('.product-suggestion');
+        if (suggestion) {
+            inputElement.value = suggestion.dataset.productName;
+            suggestions.remove();
+            
+            // Trigger product selection event
+            const event = new CustomEvent('productSelected', {
+                detail: {
+                    id: suggestion.dataset.productId,
+                    name: suggestion.dataset.productName,
+                    price: suggestion.dataset.productPrice
+                }
+            });
+            inputElement.dispatchEvent(event);
         }
     });
-    
-    // Calculate total on input change
-    itemsContainer.addEventListener('input', function() {
-        calculateInvoiceTotal(form);
-    });
-    
-    // Initial calculation
-    calculateInvoiceTotal(form);
 }
 
-function addInvoiceItem(container) {
-    const itemCount = container.children.length;
-    const itemHtml = `
-        <div class="invoice-item grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border border-gray-200 rounded-lg">
-            <div>
-                <label class="form-label">المنتج</label>
-                <select name="items[${itemCount}][product_id]" class="form-select product-select" required>
-                    <option value="">اختر المنتج</option>
-                    <!-- Products will be loaded via AJAX -->
-                </select>
+// Utility Functions
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('ar-EG', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    }).format(amount) + ' جنيه';
+}
+
+function formatDate(dateString) {
+    return new Intl.DateTimeFormat('ar-EG', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    }).format(new Date(dateString));
+}
+
+function getStatusBadgeClass(status) {
+    const statusClasses = {
+        'pending': 'bg-yellow-100 text-yellow-800',
+        'in_progress': 'bg-blue-100 text-blue-800',
+        'completed': 'bg-green-100 text-green-800',
+        'cancelled': 'bg-red-100 text-red-800',
+        'delivered': 'bg-green-100 text-green-800'
+    };
+    return statusClasses[status] || 'bg-gray-100 text-gray-800';
+}
+
+function getStatusText(status) {
+    const statusTexts = {
+        'pending': 'معلق',
+        'in_progress': 'قيد التنفيذ',
+        'completed': 'مكتمل',
+        'cancelled': 'ملغي',
+        'delivered': 'تم التسليم'
+    };
+    return statusTexts[status] || status;
+}
+
+// Toast Notifications
+function showToast(message, type = 'info', duration = 5000) {
+    const container = document.getElementById('toastContainer');
+    if (!container) {
+        // Create toast container if it doesn't exist
+        const toastContainer = document.createElement('div');
+        toastContainer.id = 'toastContainer';
+        toastContainer.className = 'fixed top-4 left-4 z-50 space-y-2';
+        document.body.appendChild(toastContainer);
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `toast max-w-sm bg-white border border-gray-200 rounded-xl shadow-lg p-4 transform transition-all duration-300 ${getToastTypeClass(type)}`;
+    
+    const icon = getToastIcon(type);
+    toast.innerHTML = `
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <i class="${icon} text-lg"></i>
             </div>
-            <div>
-                <label class="form-label">الكمية</label>
-                <input type="number" name="items[${itemCount}][quantity]" class="form-input quantity-input" min="1" value="1" required>
+            <div class="mr-3 flex-1">
+                <p class="text-sm font-medium text-gray-900">${message}</p>
             </div>
-            <div>
-                <label class="form-label">السعر</label>
-                <input type="number" name="items[${itemCount}][price]" class="form-input price-input" step="0.01" required>
-            </div>
-            <div>
-                <label class="form-label">الإجمالي</label>
-                <input type="number" class="form-input item-total" readonly>
-            </div>
-            <div class="flex items-end">
-                <button type="button" class="btn btn-danger remove-item-btn">
-                    <i class="fas fa-trash"></i>
+            <div class="mr-auto pl-3">
+                <button class="inline-flex text-gray-400 hover:text-gray-600 focus:outline-none" onclick="this.parentElement.parentElement.parentElement.remove()">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
         </div>
     `;
     
-    container.insertAdjacentHTML('beforeend', itemHtml);
-    loadProductsForSelect(container.lastElementChild.querySelector('.product-select'));
+    // Animation
+    toast.style.transform = 'translateY(-20px)';
+    toast.style.opacity = '0';
+    
+    document.getElementById('toastContainer').appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+        toast.style.transform = 'translateY(0)';
+        toast.style.opacity = '1';
+    }, 100);
+    
+    // Auto remove after duration
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.style.transform = 'translateY(-20px)';
+            toast.style.opacity = '0';
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, duration);
 }
 
-function calculateInvoiceTotal(form) {
-    const items = form.querySelectorAll('.invoice-item');
-    let total = 0;
-    
-    items.forEach(item => {
-        const quantity = parseFloat(item.querySelector('.quantity-input').value) || 0;
-        const price = parseFloat(item.querySelector('.price-input').value) || 0;
-        const itemTotal = quantity * price;
-        
-        item.querySelector('.item-total').value = itemTotal.toFixed(2);
-        total += itemTotal;
-    });
-    
-    const totalInput = form.querySelector('input[name="total"]');
-    if (totalInput) {
-        totalInput.value = total.toFixed(2);
-    }
-    
-    // Update display total
-    const totalDisplay = form.querySelector('.total-display');
-    if (totalDisplay) {
-        totalDisplay.textContent = formatCurrency(total);
-    }
+function getToastTypeClass(type) {
+    const typeClasses = {
+        'success': 'border-green-200 bg-green-50',
+        'error': 'border-red-200 bg-red-50',
+        'warning': 'border-yellow-200 bg-yellow-50',
+        'info': 'border-blue-200 bg-blue-50'
+    };
+    return typeClasses[type] || typeClasses['info'];
 }
 
-function loadProductsForSelect(select) {
-    fetch('/api/products')
-        .then(response => response.json())
-        .then(products => {
-            products.forEach(product => {
-                const option = document.createElement('option');
-                option.value = product.id;
-                option.textContent = `${product.name} - ${formatCurrency(product.price)}`;
-                option.dataset.price = product.price;
-                select.appendChild(option);
-            });
-            
-            // Auto-fill price when product is selected
-            select.addEventListener('change', function() {
-                const selectedOption = this.options[this.selectedIndex];
-                const priceInput = this.closest('.invoice-item').querySelector('.price-input');
-                if (selectedOption.dataset.price && priceInput) {
-                    priceInput.value = selectedOption.dataset.price;
-                    calculateInvoiceTotal(this.closest('form'));
-                }
-            });
-        })
-        .catch(error => {
-            console.error('Error loading products:', error);
-        });
+function getToastIcon(type) {
+    const icons = {
+        'success': 'fas fa-check-circle text-green-500',
+        'error': 'fas fa-exclamation-circle text-red-500',
+        'warning': 'fas fa-exclamation-triangle text-yellow-500',
+        'info': 'fas fa-info-circle text-blue-500'
+    };
+    return icons[type] || icons['info'];
 }
 
 // Modal Functions
@@ -335,7 +528,7 @@ function initializeModals() {
             showModal(e.target.dataset.modal);
         }
         
-        if (e.target.classList.contains('modal-close')) {
+        if (e.target.classList.contains('modal-close') || e.target.closest('.modal-close')) {
             hideModal(e.target.closest('.modal-overlay'));
         }
     });
@@ -362,136 +555,32 @@ function showModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.classList.remove('hidden');
+        modal.querySelector('.modal-content').style.transform = 'scale(0.9)';
+        modal.querySelector('.modal-content').style.opacity = '0';
+        
+        setTimeout(() => {
+            modal.querySelector('.modal-content').style.transform = 'scale(1)';
+            modal.querySelector('.modal-content').style.opacity = '1';
+        }, 100);
+        
         document.body.style.overflow = 'hidden';
     }
 }
 
 function hideModal(modal) {
     if (modal) {
-        modal.classList.add('hidden');
-        document.body.style.overflow = '';
+        const modalContent = modal.querySelector('.modal-content');
+        modalContent.style.transform = 'scale(0.9)';
+        modalContent.style.opacity = '0';
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }, 200);
     }
 }
 
-// Tooltip Functions
-function initializeTooltips() {
-    const tooltipElements = document.querySelectorAll('[data-tooltip]');
-    
-    tooltipElements.forEach(element => {
-        element.addEventListener('mouseenter', showTooltip);
-        element.addEventListener('mouseleave', hideTooltip);
-    });
-}
-
-function showTooltip(e) {
-    const text = e.target.dataset.tooltip;
-    const tooltip = document.createElement('div');
-    tooltip.className = 'tooltip bg-gray-900 text-white text-sm rounded py-1 px-2 absolute z-50 pointer-events-none';
-    tooltip.textContent = text;
-    
-    document.body.appendChild(tooltip);
-    
-    const rect = e.target.getBoundingClientRect();
-    tooltip.style.top = (rect.top - tooltip.offsetHeight - 5) + 'px';
-    tooltip.style.left = (rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2)) + 'px';
-    
-    e.target.tooltip = tooltip;
-}
-
-function hideTooltip(e) {
-    if (e.target.tooltip) {
-        e.target.tooltip.remove();
-        delete e.target.tooltip;
-    }
-}
-
-// Utility Functions
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('ar-EG', {
-        style: 'currency',
-        currency: 'EGP',
-        minimumFractionDigits: 2
-    }).format(amount);
-}
-
-function formatDate(dateString) {
-    return new Intl.DateTimeFormat('ar-EG', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    }).format(new Date(dateString));
-}
-
-function getStatusBadgeClass(status) {
-    const statusClasses = {
-        'pending': 'badge-warning',
-        'in_progress': 'badge-info',
-        'completed': 'badge-success',
-        'cancelled': 'badge-danger',
-        'delivered': 'badge-success'
-    };
-    return statusClasses[status] || 'badge-secondary';
-}
-
-function getStatusText(status) {
-    const statusTexts = {
-        'pending': 'معلق',
-        'in_progress': 'قيد التنفيذ',
-        'completed': 'مكتمل',
-        'cancelled': 'ملغي',
-        'delivered': 'تم التسليم'
-    };
-    return statusTexts[status] || status;
-}
-
-// Toast Notifications
-function showToast(message, type = 'info', duration = 5000) {
-    const container = document.getElementById('toastContainer');
-    if (!container) return;
-    
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type} fade-in`;
-    
-    const icon = getToastIcon(type);
-    toast.innerHTML = `
-        <div class="flex items-center">
-            <div class="flex-shrink-0">
-                <i class="${icon} text-lg"></i>
-            </div>
-            <div class="mr-3 flex-1">
-                <p class="text-sm font-medium">${message}</p>
-            </div>
-            <div class="mr-auto pl-3">
-                <button class="inline-flex text-gray-400 hover:text-gray-600 focus:outline-none" onclick="this.parentElement.parentElement.parentElement.remove()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        </div>
-    `;
-    
-    container.appendChild(toast);
-    
-    // Auto remove after duration
-    setTimeout(() => {
-        if (toast.parentElement) {
-            toast.remove();
-        }
-    }, duration);
-}
-
-function getToastIcon(type) {
-    const icons = {
-        'success': 'fas fa-check-circle text-green-500',
-        'error': 'fas fa-exclamation-circle text-red-500',
-        'warning': 'fas fa-exclamation-triangle text-yellow-500',
-        'info': 'fas fa-info-circle text-blue-500'
-    };
-    return icons[type] || icons['info'];
-}
-
-// Search functionality
+// Initialize search functionality
 function initializeSearch() {
     const searchInputs = document.querySelectorAll('.search-input');
     
@@ -507,66 +596,89 @@ function initializeSearch() {
     });
 }
 
-function performSearch(query, target) {
-    const targetElement = document.getElementById(target);
-    if (!targetElement) return;
+// Initialize tooltips
+function initializeTooltips() {
+    const tooltipElements = document.querySelectorAll('[data-tooltip]');
     
-    // Add loading state
-    targetElement.classList.add('opacity-50');
-    
-    // Perform search via AJAX
-    fetch(`/api/search?q=${encodeURIComponent(query)}&target=${target}`)
-        .then(response => response.json())
-        .then(data => {
-            updateSearchResults(targetElement, data);
-        })
-        .catch(error => {
-            console.error('Search error:', error);
-            showToast('حدث خطأ أثناء البحث', 'error');
-        })
-        .finally(() => {
-            targetElement.classList.remove('opacity-50');
-        });
+    tooltipElements.forEach(element => {
+        element.addEventListener('mouseenter', showTooltip);
+        element.addEventListener('mouseleave', hideTooltip);
+    });
 }
 
-function updateSearchResults(container, data) {
-    // Update container with new results
-    // Implementation depends on the specific use case
-    container.innerHTML = data.html || '';
+function showTooltip(e) {
+    const text = e.target.dataset.tooltip;
+    const tooltip = document.createElement('div');
+    tooltip.className = 'tooltip bg-gray-900 text-white text-sm rounded py-2 px-3 absolute z-50 pointer-events-none shadow-lg';
+    tooltip.textContent = text;
+    
+    document.body.appendChild(tooltip);
+    
+    const rect = e.target.getBoundingClientRect();
+    tooltip.style.top = (rect.top - tooltip.offsetHeight - 8) + 'px';
+    tooltip.style.left = (rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2)) + 'px';
+    
+    // Animate in
+    tooltip.style.opacity = '0';
+    tooltip.style.transform = 'translateY(5px)';
+    setTimeout(() => {
+        tooltip.style.opacity = '1';
+        tooltip.style.transform = 'translateY(0)';
+    }, 100);
+    
+    e.target.tooltip = tooltip;
 }
 
-// Print functionality
-function printElement(elementId) {
-    const element = document.getElementById(elementId);
-    if (!element) return;
+function hideTooltip(e) {
+    if (e.target.tooltip) {
+        const tooltip = e.target.tooltip;
+        tooltip.style.opacity = '0';
+        tooltip.style.transform = 'translateY(5px)';
+        setTimeout(() => tooltip.remove(), 200);
+        delete e.target.tooltip;
+    }
+}
+
+// Form validation
+function validateForm(form) {
+    let isValid = true;
+    const requiredFields = form.querySelectorAll('[required]');
     
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-        <!DOCTYPE html>
-        <html dir="rtl" lang="ar">
-        <head>
-            <meta charset="utf-8">
-            <title>طباعة</title>
-            <style>
-                ${document.querySelector('link[href*="style.css"]')?.textContent || ''}
-                body { font-family: Arial, sans-serif; }
-                .no-print { display: none !important; }
-            </style>
-        </head>
-        <body>
-            ${element.innerHTML}
-        </body>
-        </html>
-    `);
+    requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+            showFieldError(field, 'هذا الحقل مطلوب');
+            isValid = false;
+        } else {
+            clearFieldError(field);
+        }
+    });
     
-    printWindow.document.close();
-    printWindow.print();
-    printWindow.close();
+    return isValid;
+}
+
+function showFieldError(field, message) {
+    clearFieldError(field);
+    
+    field.classList.add('border-red-500', 'bg-red-50');
+    
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'field-error text-red-500 text-sm mt-1 flex items-center';
+    errorDiv.innerHTML = `<i class="fas fa-exclamation-circle ml-1"></i>${message}`;
+    
+    field.parentNode.appendChild(errorDiv);
+}
+
+function clearFieldError(field) {
+    field.classList.remove('border-red-500', 'bg-red-50');
+    
+    const existingError = field.parentNode.querySelector('.field-error');
+    if (existingError) {
+        existingError.remove();
+    }
 }
 
 // Auto-save functionality
 function initializeAutoSave(form) {
-    const formData = new FormData(form);
     const formKey = `autosave_${form.id || 'form'}`;
     
     // Load saved data
@@ -598,17 +710,13 @@ function loadAutoSavedData(form, key) {
         
         Object.entries(data).forEach(([name, value]) => {
             const input = form.querySelector(`[name="${name}"]`);
-            if (input) {
+            if (input && input.value === '') {
                 input.value = value;
             }
         });
     } catch (error) {
         console.error('Error loading auto-saved data:', error);
     }
-}
-
-function clearAutoSavedData(formKey) {
-    localStorage.removeItem(formKey);
 }
 
 // Debounce utility
@@ -624,42 +732,47 @@ function debounce(func, wait) {
     };
 }
 
-// Form validation
-function validateForm(form) {
-    let isValid = true;
-    const requiredFields = form.querySelectorAll('[required]');
+// Print functionality
+function printElement(elementId) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
     
-    requiredFields.forEach(field => {
-        if (!field.value.trim()) {
-            showFieldError(field, 'هذا الحقل مطلوب');
-            isValid = false;
-        } else {
-            clearFieldError(field);
-        }
-    });
+    const printWindow = window.open('', '_blank');
+    const cssLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+        .map(link => `<link rel="stylesheet" href="${link.href}">`)
+        .join('');
     
-    return isValid;
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html dir="rtl" lang="ar">
+        <head>
+            <meta charset="utf-8">
+            <title>طباعة - متجر الحسيني</title>
+            ${cssLinks}
+            <style>
+                body { 
+                    font-family: 'Cairo', Arial, sans-serif; 
+                    direction: rtl;
+                }
+                .no-print { display: none !important; }
+                @media print {
+                    body { -webkit-print-color-adjust: exact; }
+                }
+            </style>
+        </head>
+        <body onload="window.print(); window.close();">
+            ${element.outerHTML}
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
 }
 
-function showFieldError(field, message) {
-    clearFieldError(field);
-    
-    field.classList.add('border-red-500');
-    
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'field-error text-red-500 text-sm mt-1';
-    errorDiv.textContent = message;
-    
-    field.parentNode.appendChild(errorDiv);
-}
-
-function clearFieldError(field) {
-    field.classList.remove('border-red-500');
-    
-    const existingError = field.parentNode.querySelector('.field-error');
-    if (existingError) {
-        existingError.remove();
-    }
+// Performance optimization
+function performSearch(query, target) {
+    // Implementation will be added based on specific search requirements
+    console.log('Search:', query, 'Target:', target);
 }
 
 // Export functions for global use

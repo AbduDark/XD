@@ -8,6 +8,49 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    public function apiIndex()
+    {
+        $products = Product::select('id', 'name', 'price', 'quantity')
+            ->where('quantity', '>', 0)
+            ->orderBy('name')
+            ->get()
+            ->map(function($product) {
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'price' => (float) $product->price,
+                    'quantity' => $product->quantity,
+                ];
+            });
+
+        return response()->json($products);
+    }
+
+    public function search(Request $request)
+    {
+        $query = $request->get('q', '');
+        
+        if (strlen($query) < 2) {
+            return response()->json([]);
+        }
+
+        $products = Product::where('name', 'LIKE', "%{$query}%")
+            ->orWhere('barcode', 'LIKE', "%{$query}%")
+            ->where('quantity', '>', 0)
+            ->take(10)
+            ->get()
+            ->map(function($product) {
+                return [
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'price' => (float) $product->price,
+                    'quantity' => $product->quantity,
+                    'barcode' => $product->barcode,
+                ];
+            });
+
+        return response()->json($products);
+    }
     public function index(Request $request)
     {
         $query = Product::with('category');
