@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\Repair;
-use App\Models\CashTransfer;
 use App\Models\ReturnItem;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -14,39 +13,81 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $today = Carbon::today();
-        $thisMonth = Carbon::now()->startOfMonth();
+        // إحصائيات أساسية
+        $totalProducts = Product::count();
 
-        $stats = [
-            'today_sales' => Invoice::whereDate('created_at', $today)->sum('total'),
-            'today_sales_count' => Invoice::whereDate('created_at', $today)->count(),
-            'month_sales' => Invoice::where('created_at', '>=', $thisMonth)->sum('total'),
-            'month_sales_count' => Invoice::where('created_at', '>=', $thisMonth)->count(),
-            'total_products' => Product::count(),
-            'low_stock_products' => Product::whereRaw('quantity <= min_quantity')->count(),
-            'pending_repairs' => Repair::where('status', 'pending')->count(),
-            'today_cash_transfers' => CashTransfer::whereDate('created_at', $today)->sum('amount'),
-            'today_returns' => ReturnItem::whereDate('created_at', $today)->sum('amount'),
-        ];
+        $todaySales = Invoice::whereDate('created_at', today())
+            ->sum('total');
 
-        // Chart data
-        $salesChart = $this->getSalesChartData();
-        $lowStockProducts = Product::whereRaw('quantity <= min_quantity')->with('category')->get();
+        $pendingRepairs = Repair::where('status', 'pending')
+            ->orWhere('status', 'in_progress')
+            ->count();
 
-        return view('dashboard', compact('stats', 'salesChart', 'lowStockProducts'));
+        $lowStock = Product::where('quantity', '<=', 10)->count();
+
+        return view('dashboard', compact(
+            'totalProducts',
+            'todaySales',
+            'pendingRepairs',
+            'lowStock'
+        ));
     }
 
-    private function getSalesChartData()
+    public function recentInvoices()
     {
-        $salesData = [];
+        $invoices = Invoice::with('user')
+            ->latest()
+            ->take(5)
+            ->get()
+            ->map(function($invoice) {
+                return [
+                    'id' => $invoice->id,
+                    'customer_name' => $invoice->customer_name,
+                    'total' => $invoice->total,
+                    'created_at' => $invoice->created_at->toISOString(),
+                ];
+            });
+
+        return response()->json($invoices);
+    }
+
+    public function recentRepairs()
+    {
+        $repairs = Repair::latest()
+            ->take(5)
+            ->get()
+            ->map(function($repair) {
+                return [
+                    'id' => $repair->id,
+                    'device_type' => $repair->device_type,
+                    'customer_name' => $repair->customer_name,
+                    'status' => $repair->status,
+                    'created_at' => $repair->created_at->toISOString(),
+                ];
+            });
+
+        return response()->json($repairs);
+    }
+
+    public function salesChart()
+    {
+        $days = collect();
+        $sales = collect();
+
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
-            $sales = Invoice::whereDate('created_at', $date)->sum('total');
-            $salesData[] = [
-                'date' => $date->format('M d'),
-                'sales' => $sales
-            ];
+            $dayName = $date->locale('ar')->dayName;
+
+            $daySales = Invoice::whereDate('created_at', $date->toDateString())
+                ->sum('total');
+
+            $days->push($dayName);
+            $sales->push($daySales);
         }
-        return $salesData;
+
+        return response()->json([
+            'labels' => $days,
+            'sales' => $sales
+        ]);
     }
 }
