@@ -25,8 +25,8 @@
                 <form method="GET" action="{{ route('products.index') }}" class="mb-6">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <input type="text" name="search" value="{{ request('search') }}" 
-                                   placeholder="البحث عن منتج..." 
+                            <input type="text" name="search" value="{{ request('search') }}"
+                                   placeholder="البحث عن منتج..."
                                    class="form-input w-full">
                         </div>
                         <div>
@@ -89,25 +89,26 @@
                                 <td>{{ $product->min_quantity ?? 0 }}</td>
                                 <td>
                                     <div class="flex gap-2">
-                                        <a href="{{ route('products.show', $product) }}" 
-                                           class="btn btn-info btn-sm" 
+                                        <a href="{{ route('products.show', $product) }}"
+                                           class="btn btn-info btn-sm"
                                            title="عرض المنتج"
                                            data-tooltip="عرض تفاصيل المنتج">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="{{ route('products.edit', $product) }}" 
-                                           class="btn btn-warning btn-sm" 
+                                        <a href="{{ route('products.edit', $product) }}"
+                                           class="btn btn-warning btn-sm"
                                            title="تعديل المنتج"
                                            data-tooltip="تعديل بيانات المنتج">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <button type="button" 
-                                                onclick="confirmDelete({{ $product->id }}, '{{ $product->name_ar }}')"
-                                                class="btn btn-danger btn-sm" 
-                                                title="حذف المنتج"
-                                                data-tooltip="حذف المنتج نهائياً">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                    <button type="button"
+        onclick="confirmDelete({{ $product->id }}, '{{ $product->name_ar }}')"
+        class="btn btn-danger btn-sm"
+        title="حذف المنتج"
+        data-tooltip="حذف المنتج نهائياً"
+        data-modal="deleteModal">
+    <i class="fas fa-trash"></i>
+</button>
                                     </div>
                                 </td>
                             </tr>
@@ -190,20 +191,20 @@ function hideDeleteModal(modalId) {
 function confirmDelete(productId, productName) {
     document.getElementById('productName').textContent = productName;
     document.getElementById('deleteForm').action = '/products/' + productId;
-    showDeleteModal('deleteModal');
+    // showDeleteModal('deleteModal');
 }
 
 // Show success/error messages with simple toast
 function showSimpleToast(message, type) {
     const toast = document.createElement('div');
     toast.className = `fixed top-4 left-4 z-50 max-w-sm bg-white border border-gray-200 rounded-xl shadow-lg p-4 transform transition-all duration-300`;
-    
+
     const bgColor = type === 'success' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200';
     const iconColor = type === 'success' ? 'text-green-500' : 'text-red-500';
     const icon = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle';
-    
+
     toast.className = `fixed top-4 left-4 z-50 max-w-sm ${bgColor} rounded-xl shadow-lg p-4 transform transition-all duration-300`;
-    
+
     toast.innerHTML = `
         <div class="flex items-center">
             <div class="flex-shrink-0">
@@ -219,9 +220,9 @@ function showSimpleToast(message, type) {
             </div>
         </div>
     `;
-    
+
     document.body.appendChild(toast);
-    
+
     // Auto remove after 5 seconds
     setTimeout(() => {
         if (toast.parentElement) {
