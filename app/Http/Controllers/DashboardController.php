@@ -16,19 +16,49 @@ class DashboardController extends Controller
         // إحصائيات أساسية
         $totalProducts = Product::count();
 
-        $todaySales = Invoice::whereDate('created_at', today())
-            ->sum('total');
+        $totalSales = Invoice::sum('total');
 
         $pendingRepairs = Repair::whereIn('status', ['pending', 'in_progress'])
             ->count();
 
-        $lowStock = Product::where('quantity', '<=', 10)->count();
+        $lowStockProducts = Product::where('quantity', '<=', 10)->count();
+
+        // النشاطات الأخيرة
+        $recentActivities = [
+            [
+                'type' => 'sale',
+                'icon' => 'shopping-cart',
+                'message' => 'تم إنشاء فاتورة جديدة',
+                'time' => 'منذ 5 دقائق'
+            ],
+            [
+                'type' => 'repair',
+                'icon' => 'tools',
+                'message' => 'تم استلام جهاز للصيانة',
+                'time' => 'منذ 30 دقيقة'
+            ],
+            [
+                'type' => 'product',
+                'icon' => 'box',
+                'message' => 'تم إضافة منتج جديد',
+                'time' => 'منذ ساعة'
+            ]
+        ];
+
+        // المنتجات منخفضة المخزون
+        $lowStockItems = Product::where('quantity', '<=', 10)
+            ->select('name_ar as name', 'quantity')
+            ->take(5)
+            ->get()
+            ->toArray();
 
         return view('dashboard', compact(
             'totalProducts',
-            'todaySales',
+            'totalSales',
             'pendingRepairs',
-            'lowStock'
+            'lowStockProducts',
+            'recentActivities',
+            'lowStockItems'
         ));
     }
 

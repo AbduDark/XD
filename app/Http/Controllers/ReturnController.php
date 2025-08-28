@@ -81,6 +81,49 @@ class ReturnController extends Controller
         return view('returns.show', compact('return'));
     }
 
+    public function edit(ReturnItem $return)
+    {
+        $products = Product::all();
+        return view('returns.edit', compact('return', 'products'));
+    }
+
+    public function update(Request $request, ReturnItem $return)
+    {
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1',
+            'reason' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // إرجاع الكمية القديمة للمخزون
+            $return->product->decrement('quantity', $return->quantity);
+
+            // تحديث المرتجع
+            $return->update([
+                'product_id' => $request->product_id,
+                'quantity' => $request->quantity,
+                'reason' => $request->reason,
+                'amount' => $request->amount,
+            ]);
+
+            // خصم الكمية الجديدة من المخزون
+            $newProduct = Product::find($request->product_id);
+            $newProduct->increment('quantity', $request->quantity);
+
+            DB::commit();
+
+            return redirect()->route('returns.index')->with('success', 'تم تحديث المرتجع بنجاح');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'حدث خطأ في تحديث المرتجع');
+        }
+    }
+
     public function destroy(ReturnItem $return)
     {
         try {
