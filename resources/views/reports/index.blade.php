@@ -137,7 +137,150 @@
 
         <a href="{{ route('reports.repairs') }}" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-md transition-shadow">
             <div class="flex items-center">
-                <i class="fas fa-tools text-orange-600 dark:text-orange-400 text-2xl ml-4"></i>
+                <i class="fas fa-wrench text-orange-600 dark:text-orange-400 text-2xl ml-4"></i>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">تقرير الإصلاحات</h3>
+                    <p class="text-gray-600 dark:text-gray-400">حالة الإصلاحات والأرباح</p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- إحصائيات سريعة -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">مبيعات الشهر</p>
+                    <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ number_format($monthSales, 2) }} ج.م</p>
+                </div>
+                <i class="fas fa-chart-line text-3xl text-blue-600 dark:text-blue-400"></i>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">مبيعات اليوم</p>
+                    <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ number_format($todaySales, 2) }} ج.م</p>
+                </div>
+                <i class="fas fa-dollar-sign text-3xl text-green-600 dark:text-green-400"></i>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">الإصلاحات المعلقة</p>
+                    <p class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{{ $pendingRepairs }}</p>
+                </div>
+                <i class="fas fa-clock text-3xl text-yellow-600 dark:text-yellow-400"></i>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">ربح اليوم</p>
+                    <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ number_format($todayProfit, 2) }} ج.م</p>
+                </div>
+                <i class="fas fa-coins text-3xl text-purple-600 dark:text-purple-400"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- الرسوم البيانية -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- رسم بياني للمبيعات -->
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">مبيعات آخر 7 أيام</h3>
+            <canvas id="salesChart" class="w-full h-64"></canvas>
+        </div>
+
+        <!-- رسم بياني للفئات -->
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">توزيع المنتجات حسب الفئات</h3>
+            <canvas id="categoriesChart" class="w-full h-64"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// رسم بياني للمبيعات
+const salesCtx = document.getElementById('salesChart').getContext('2d');
+new Chart(salesCtx, {
+    type: 'line',
+    data: {
+        labels: {!! json_encode($salesChartLabels) !!},
+        datasets: [{
+            label: 'المبيعات (ج.م)',
+            data: {!! json_encode($salesChartData) !!},
+            borderColor: 'rgb(59, 130, 246)',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: {
+                    font: {
+                        family: 'Arial'
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return value.toLocaleString() + ' ج.م';
+                    }
+                }
+            }
+        }
+    }
+});
+
+// رسم بياني للفئات
+const categoriesCtx = document.getElementById('categoriesChart').getContext('2d');
+new Chart(categoriesCtx, {
+    type: 'doughnut',
+    data: {
+        labels: {!! json_encode($categoryLabels) !!},
+        datasets: [{
+            data: {!! json_encode($categoryData) !!},
+            backgroundColor: [
+                'rgba(255, 99, 132, 0.8)',
+                'rgba(54, 162, 235, 0.8)',
+                'rgba(255, 205, 86, 0.8)',
+                'rgba(75, 192, 192, 0.8)',
+                'rgba(153, 102, 255, 0.8)',
+                'rgba(255, 159, 64, 0.8)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    font: {
+                        family: 'Arial'
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+@endsections="fas fa-tools text-orange-600 dark:text-orange-400 text-2xl ml-4"></i>
                 <div>
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">تقرير الصيانة</h3>
                     <p class="text-gray-600 dark:text-gray-400">إحصائيات أعمال الصيانة</p>

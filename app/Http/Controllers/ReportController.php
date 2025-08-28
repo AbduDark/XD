@@ -51,14 +51,14 @@ class ReportController extends Controller
     public function dailyReport(Request $request)
     {
         $date = $request->date ? Carbon::parse($request->date) : Carbon::yesterday();
-        
+
         // مبيعات اليوم
         $dailySales = Invoice::whereDate('created_at', $date)->sum('total');
         $dailyInvoices = Invoice::whereDate('created_at', $date)->count();
-        
+
         // حساب الربح
         $dailyProfit = $this->calculateDayProfit($date);
-        
+
         // تفاصيل الفواتير
         $invoices = Invoice::with('items.product', 'user')
             ->whereDate('created_at', $date)
@@ -85,7 +85,7 @@ class ReportController extends Controller
     public function inventoryValue()
     {
         $products = Product::with('category')->get();
-        
+
         // القيمة بسعر البيع
         $totalSellingValue = $products->sum(function($product) {
             return $product->quantity * $product->selling_price;
@@ -126,26 +126,26 @@ class ReportController extends Controller
     public function dailyClosing(Request $request)
     {
         $date = $request->date ? Carbon::parse($request->date) : Carbon::today();
-        
+
         // المبيعات
         $sales = Invoice::whereDate('created_at', $date)->sum('total');
         $invoicesCount = Invoice::whereDate('created_at', $date)->count();
-        
+
         // الأرباح
         $profit = $this->calculateDayProfit($date);
-        
+
         // المرتجعات
         $returns = ReturnItem::whereDate('created_at', $date)->sum('amount');
-        
+
         // التحويلات النقدية
         $cashIn = CashTransfer::whereDate('created_at', $date)
             ->where('type', 'in')->sum('amount');
         $cashOut = CashTransfer::whereDate('created_at', $date)
             ->where('type', 'out')->sum('amount');
-        
+
         // صافي النقد
         $netCash = $sales - $returns + $cashIn - $cashOut;
-        
+
         // المنتجات المباعة
         $soldProducts = InvoiceItem::whereHas('invoice', function($query) use ($date) {
             $query->whereDate('created_at', $date);
@@ -207,7 +207,7 @@ class ReportController extends Controller
     public function inventory()
     {
         $products = Product::with('category')->get();
-        
+
         $totalValue = $products->sum(function($product) {
             return $product->quantity * $product->purchase_price;
         });
