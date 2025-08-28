@@ -101,14 +101,13 @@
                                            data-tooltip="تعديل بيانات المنتج">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                    <button type="button"
-        onclick="confirmDelete({{ $product->id }}, '{{ $product->name_ar }}')"
-        class="btn btn-danger btn-sm"
-        title="حذف المنتج"
-        data-tooltip="حذف المنتج نهائياً"
-        data-modal="deleteModal">
-    <i class="fas fa-trash"></i>
-</button>
+                                        <button type="button"
+                                            onclick="confirmDelete({{ $product->id }}, '{{ addslashes($product->name_ar) }}')"
+                                            class="btn btn-danger btn-sm"
+                                            title="حذف المنتج"
+                                            data-tooltip="حذف المنتج نهائياً">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -139,8 +138,8 @@
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div id="deleteModal" class="modal-overlay hidden">
-    <div class="modal-content max-w-md">
+<div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
         <div class="p-6">
             <div class="flex items-center justify-center mb-4">
                 <div class="p-3 bg-red-100 rounded-full">
@@ -154,7 +153,7 @@
                 <span class="text-red-600 text-sm">لا يمكن التراجع عن هذا الإجراء!</span>
             </p>
             <div class="flex gap-4 justify-center">
-                <button type="button" onclick="hideDeleteModal('deleteModal')" class="btn btn-secondary">
+                <button type="button" id="cancelDelete" class="btn btn-secondary">
                     إلغاء
                 </button>
                 <form id="deleteForm" method="POST" style="display: inline;">
@@ -172,16 +171,16 @@
 
 <script>
 // Modal functions
-function showDeleteModal(modalId) {
-    const modal = document.getElementById(modalId);
+function showDeleteModal() {
+    const modal = document.getElementById('deleteModal');
     if (modal) {
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
     }
 }
 
-function hideDeleteModal(modalId) {
-    const modal = document.getElementById(modalId);
+function hideDeleteModal() {
+    const modal = document.getElementById('deleteModal');
     if (modal) {
         modal.classList.add('hidden');
         document.body.style.overflow = '';
@@ -191,7 +190,7 @@ function hideDeleteModal(modalId) {
 function confirmDelete(productId, productName) {
     document.getElementById('productName').textContent = productName;
     document.getElementById('deleteForm').action = '/products/' + productId;
-    showDeleteModal('deleteModal');
+    showDeleteModal();
 }
 
 // Show success/error messages with simple toast
@@ -252,12 +251,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 500));
     }
 
+    // Close modal on cancel button click
+    const cancelButton = document.getElementById('cancelDelete');
+    if (cancelButton) {
+        cancelButton.addEventListener('click', hideDeleteModal);
+    }
+
     // Close modal on overlay click
     const deleteModal = document.getElementById('deleteModal');
     if (deleteModal) {
         deleteModal.addEventListener('click', function(e) {
             if (e.target === this) {
-                hideDeleteModal('deleteModal');
+                hideDeleteModal();
             }
         });
     }
@@ -265,10 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Close modal on ESC key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
-            const deleteModal = document.getElementById('deleteModal');
-            if (deleteModal && !deleteModal.classList.contains('hidden')) {
-                hideDeleteModal('deleteModal');
-            }
+            hideDeleteModal();
         }
     });
 });
