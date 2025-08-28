@@ -5,11 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Invoice;
 use App\Models\Repair;
-use Illuminate\Http\Request;
-
-use App\Models\Product;
-use App\Models\Invoice;
-use App\Models\Repair;
 use App\Models\ReturnItem;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -53,75 +48,6 @@ class DashboardController extends Controller
             });
 
         return response()->json($invoices);
-    }
-
-    public function getStats()
-    {
-        $totalProducts = Product::count();
-        $todaySales = Invoice::whereDate('created_at', today())->sum('total');
-        $pendingRepairs = Repair::whereIn('status', ['pending', 'in_progress'])->count();
-        $lowStock = Product::where('quantity', '<=', 10)->count();
-
-        return response()->json([
-            'total_products' => $totalProducts,
-            'today_sales' => $todaySales,
-            'pending_repairs' => $pendingRepairs,
-            'low_stock' => $lowStock,
-        ]);
-    }
-
-    public function getRecentInvoices()
-    {
-        $invoices = Invoice::with('user')
-            ->latest()
-            ->take(5)
-            ->get()
-            ->map(function($invoice) {
-                return [
-                    'id' => $invoice->id,
-                    'customer_name' => $invoice->customer_name,
-                    'total' => (float) $invoice->total,
-                    'created_at' => $invoice->created_at->format('Y-m-d H:i'),
-                ];
-            });
-
-        return response()->json($invoices);
-    }
-
-    public function getRecentRepairs()
-    {
-        $repairs = Repair::latest()
-            ->take(5)
-            ->get()
-            ->map(function($repair) {
-                return [
-                    'id' => $repair->id,
-                    'device_type' => $repair->device_type,
-                    'problem_description' => $repair->problem_description,
-                    'status' => $repair->status,
-                    'cost' => (float) $repair->cost,
-                    'created_at' => $repair->created_at->format('Y-m-d H:i'),
-                ];
-            });
-
-        return response()->json($repairs);
-    }
-
-    public function getSalesChart()
-    {
-        $salesData = Invoice::selectRaw('DATE(created_at) as date, SUM(total) as total')
-            ->where('created_at', '>=', now()->subDays(30))
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get()
-            ->map(function($item) {
-                return [
-                    'date' => $item->date,
-                    'total' => (float) $item->total,
-                ];
-            });
-
-        return response()->json($salesData);voices);
     }
 
     public function recentRepairs()
@@ -275,11 +201,6 @@ class DashboardController extends Controller
             $repairStats->push([
                 'status' => $status,
                 'count' => $count,
-            ]);
-        }
-
-        return response()->json($repairStats);
-    }nt' => $count,
                 'label' => $this->getStatusLabel($status),
             ]);
         }
