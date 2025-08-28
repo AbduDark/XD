@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
     /**
@@ -21,7 +22,6 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'is_active',
     ];
 
     /**
@@ -47,6 +47,30 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Check if user has a specific role
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
+    }
+
+    /**
+     * Check if user is super admin
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
+    }
+
+    /**
+     * Check if user is admin
+     */
+    public function isAdmin(): bool
+    {
+        return in_array($this->role, ['admin', 'super_admin']);
+    }
+
     public function invoices()
     {
         return $this->hasMany(Invoice::class);
@@ -65,20 +89,5 @@ class User extends Authenticatable
     public function returns()
     {
         return $this->hasMany(ReturnItem::class);
-    }
-
-    public function isSuperAdmin()
-    {
-        return $this->role === 'super_admin';
-    }
-
-    public function isAdmin()
-    {
-        return $this->role === 'admin';
-    }
-
-    public function isEmployee()
-    {
-        return $this->role === 'employee';
     }
 }
