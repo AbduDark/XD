@@ -35,7 +35,7 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">إجمالي المبيعات</h3>
-            <p class="text-3xl font-bold text-green-600 dark:text-green-400">{{ number_format($totalSales, 2) }} ر.س</p>
+            <p class="text-3xl font-bold text-green-600 dark:text-green-400">{{ number_format($totalSales, 2) }} ج.م</p>
         </div>
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">عدد الفواتير</h3>
@@ -43,11 +43,11 @@
         </div>
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">إجمالي الخصومات</h3>
-            <p class="text-3xl font-bold text-red-600 dark:text-red-400">{{ number_format($totalDiscount, 2) }} ر.س</p>
+            <p class="text-3xl font-bold text-red-600 dark:text-red-400">{{ number_format($totalDiscount, 2) }} ج.م</p>
         </div>
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">متوسط الفاتورة</h3>
-            <p class="text-3xl font-bold text-purple-600 dark:text-purple-400">{{ number_format($invoiceCount > 0 ? $totalSales / $invoiceCount : 0, 2) }} ر.س</p>
+            <p class="text-3xl font-bold text-purple-600 dark:text-purple-400">{{ number_format($invoiceCount > 0 ? $totalSales / $invoiceCount : 0, 2) }} ج.م</p>
         </div>
     </div>
 
@@ -79,13 +79,13 @@
                             {{ $invoice->customer_name ?? 'عميل مجهول' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
-                            {{ number_format($invoice->subtotal, 2) }} ر.س
+                            {{ number_format($invoice->subtotal, 2) }} ج.م
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 dark:text-red-400">
-                            {{ number_format($invoice->discount, 2) }} ر.س
+                            {{ number_format($invoice->discount, 2) }} ج.م
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600 dark:text-green-400">
-                            {{ number_format($invoice->total, 2) }} ر.س
+                            {{ number_format($invoice->total, 2) }} ج.م</td>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
                             {{ $invoice->created_at->format('Y/m/d H:i') }}

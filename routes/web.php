@@ -53,11 +53,15 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('cash-transfers', CashTransferController::class);
 
     // Report routes
-    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
-    Route::get('/reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
-    Route::get('/reports/inventory', [ReportController::class, 'inventory'])->name('reports.inventory');
-    Route::get('/reports/repairs', [ReportController::class, 'repairs'])->name('reports.repairs');
-    Route::get('/reports/financial', [ReportController::class, 'financial'])->name('reports.financial');
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('index');
+        Route::get('/sales', [ReportController::class, 'sales'])->name('sales');
+        Route::get('/inventory', [ReportController::class, 'inventory'])->name('inventory');
+        Route::get('/repairs', [ReportController::class, 'repairs'])->name('repairs');
+        Route::get('/daily', [ReportController::class, 'dailyReport'])->name('daily');
+        Route::get('/inventory-value', [ReportController::class, 'inventoryValue'])->name('inventory-value');
+        Route::get('/daily-closing', [ReportController::class, 'dailyClosing'])->name('daily-closing');
+    });
 
     // Backup routes
     Route::get('/backup', [BackupController::class, 'create'])->name('backup.create');

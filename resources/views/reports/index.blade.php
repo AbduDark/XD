@@ -8,7 +8,7 @@
     </div>
 
     <!-- إحصائيات سريعة -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
             <div class="flex items-center">
                 <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
@@ -16,7 +16,7 @@
                 </div>
                 <div class="mr-4">
                     <p class="text-sm text-gray-600 dark:text-gray-400">إجمالي المبيعات (الشهر)</p>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($monthSales) }} ر.س</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($monthSales, 2) }} ج.م</p>
                 </div>
             </div>
         </div>
@@ -52,7 +52,19 @@
                 </div>
                 <div class="mr-4">
                     <p class="text-sm text-gray-600 dark:text-gray-400">إجمالي المرتجعات</p>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($totalReturns) }} ر.س</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($totalReturns, 2) }} ج.م</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+            <div class="flex items-center">
+                <div class="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
+                    <i class="fas fa-coins text-purple-600 dark:text-purple-400 text-xl"></i>
+                </div>
+                <div class="mr-4">
+                    <p class="text-sm text-gray-600 dark:text-gray-400">أرباح اليوم</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($todayProfit, 2) }} ج.م</p>
                 </div>
             </div>
         </div>
@@ -72,7 +84,7 @@
     </div>
 
     <!-- قائمة التقارير -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <a href="{{ route('reports.sales') }}" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-md transition-shadow">
             <div class="flex items-center">
                 <i class="fas fa-chart-line text-blue-600 dark:text-blue-400 text-2xl ml-4"></i>
@@ -83,9 +95,19 @@
             </div>
         </a>
 
+        <a href="{{ route('reports.daily') }}" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-md transition-shadow">
+            <div class="flex items-center">
+                <i class="fas fa-calendar-day text-green-600 dark:text-green-400 text-2xl ml-4"></i>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">التقرير اليومي</h3>
+                    <p class="text-gray-600 dark:text-gray-400">مبيعات وأرباح يوم محدد</p>
+                </div>
+            </div>
+        </a>
+
         <a href="{{ route('reports.inventory') }}" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-md transition-shadow">
             <div class="flex items-center">
-                <i class="fas fa-boxes text-green-600 dark:text-green-400 text-2xl ml-4"></i>
+                <i class="fas fa-boxes text-yellow-600 dark:text-yellow-400 text-2xl ml-4"></i>
                 <div>
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">تقرير المخزون</h3>
                     <p class="text-gray-600 dark:text-gray-400">حالة المخزون والمنتجات الناقصة</p>
@@ -93,9 +115,29 @@
             </div>
         </a>
 
+        <a href="{{ route('reports.inventory-value') }}" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-md transition-shadow">
+            <div class="flex items-center">
+                <i class="fas fa-dollar-sign text-purple-600 dark:text-purple-400 text-2xl ml-4"></i>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">قيمة المخزون</h3>
+                    <p class="text-gray-600 dark:text-gray-400">قيمة المنتجات بأسعار البيع والشراء</p>
+                </div>
+            </div>
+        </a>
+
+        <a href="{{ route('reports.daily-closing') }}" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-md transition-shadow">
+            <div class="flex items-center">
+                <i class="fas fa-lock text-indigo-600 dark:text-indigo-400 text-2xl ml-4"></i>
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">تقفيل يومي</h3>
+                    <p class="text-gray-600 dark:text-gray-400">تقفيل يومي للمبيعات والحسابات</p>
+                </div>
+            </div>
+        </a>
+
         <a href="{{ route('reports.repairs') }}" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-md transition-shadow">
             <div class="flex items-center">
-                <i class="fas fa-tools text-yellow-600 dark:text-yellow-400 text-2xl ml-4"></i>
+                <i class="fas fa-tools text-orange-600 dark:text-orange-400 text-2xl ml-4"></i>
                 <div>
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">تقرير الصيانة</h3>
                     <p class="text-gray-600 dark:text-gray-400">إحصائيات أعمال الصيانة</p>
@@ -114,7 +156,7 @@ new Chart(salesCtx, {
     data: {
         labels: {!! json_encode($salesChartLabels) !!},
         datasets: [{
-            label: 'المبيعات (ر.س)',
+            label: 'المبيعات (ج.م)',
             data: {!! json_encode($salesChartData) !!},
             borderColor: 'rgb(59, 130, 246)',
             backgroundColor: 'rgba(59, 130, 246, 0.1)',
