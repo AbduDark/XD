@@ -2,131 +2,168 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="p-6">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">التقرير اليومي</h1>
-        <a href="{{ route('reports.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
-            <i class="fas fa-arrow-right ml-2"></i>
-            العودة للتقارير
-        </a>
-    </div>
-
-    <!-- فلتر التاريخ -->
-    <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow mb-6">
-        <form method="GET" class="flex gap-4 items-end">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">التاريخ</label>
-                <input type="date" name="date" value="{{ $date->format('Y-m-d') }}" 
-                       class="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 dark:bg-gray-700 dark:text-white text-gray-900">
-            </div>
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
-                <i class="fas fa-search ml-2"></i>
-                عرض التقرير
-            </button>
-        </form>
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">
+            <i class="fas fa-calendar-day ml-3"></i>
+            التقرير اليومي
+        </h1>
+        <p class="dashboard-subtitle">تقرير مفصل لمبيعات وأرباح {{ $date->format('d/m/Y') }}</p>
+        
+        <div class="mt-4">
+            <form method="GET" action="{{ route('reports.daily') }}" class="flex justify-center">
+                <div class="flex items-center bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-2">
+                    <input type="date" name="date" value="{{ $date->format('Y-m-d') }}" 
+                           class="bg-transparent text-white placeholder-gray-300 border-0 focus:ring-0 px-3 py-2">
+                    <button type="submit" class="bg-white bg-opacity-30 hover:bg-opacity-40 text-white px-4 py-2 rounded-lg transition-all duration-200">
+                        <i class="fas fa-search ml-2"></i>
+                        عرض
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- إحصائيات اليوم -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">إجمالي المبيعات</h3>
-            <p class="text-3xl font-bold text-green-600 dark:text-green-400">{{ number_format($dailySales, 2) }} ج.م</p>
+    <div class="stats-grid">
+        <div class="stat-card stat-success">
+            <div class="stat-icon">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stat-number">{{ number_format($dailySales, 2) }}</div>
+            <div class="stat-label">إجمالي المبيعات (ج.م)</div>
         </div>
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">عدد الفواتير</h3>
-            <p class="text-3xl font-bold text-blue-600 dark:text-blue-400">{{ $dailyInvoices }}</p>
+
+        <div class="stat-card stat-primary">
+            <div class="stat-icon">
+                <i class="fas fa-file-invoice"></i>
+            </div>
+            <div class="stat-number">{{ $dailyInvoices }}</div>
+            <div class="stat-label">عدد الفواتير</div>
         </div>
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">إجمالي الأرباح</h3>
-            <p class="text-3xl font-bold text-purple-600 dark:text-purple-400">{{ number_format($dailyProfit, 2) }} ج.م</p>
+
+        <div class="stat-card stat-warning">
+            <div class="stat-icon">
+                <i class="fas fa-coins"></i>
+            </div>
+            <div class="stat-number">{{ number_format($dailyProfit, 2) }}</div>
+            <div class="stat-label">إجمالي الأرباح (ج.م)</div>
         </div>
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">متوسط الفاتورة</h3>
-            <p class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">{{ number_format($dailyInvoices > 0 ? $dailySales / $dailyInvoices : 0, 2) }} ج.م</p>
+
+        <div class="stat-card stat-info">
+            <div class="stat-icon">
+                <i class="fas fa-calculator"></i>
+            </div>
+            <div class="stat-number">{{ $dailyInvoices > 0 ? number_format($dailySales / $dailyInvoices, 2) : 0 }}</div>
+            <div class="stat-label">متوسط الفاتورة (ج.م)</div>
         </div>
     </div>
 
-    <!-- أفضل المنتجات مبيعاً -->
-    @if($topProducts->count() > 0)
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-8">
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">أفضل المنتجات مبيعاً</h3>
+    <div class="dashboard-grid">
+        <!-- أفضل المنتجات مبيعاً -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-star"></i>
+                    أفضل المنتجات مبيعاً
+                </h3>
+            </div>
+            <div class="card-content">
+                @if($topProducts->count() > 0)
+                    <div class="space-y-3">
+                        @foreach($topProducts->take(5) as $item)
+                        <div class="flex items-center justify-between p-3 bg-white bg-opacity-10 rounded-lg">
+                            <div>
+                                <div class="text-white font-semibold">{{ $item->product->name ?? 'منتج محذوف' }}</div>
+                                <div class="text-gray-300 text-sm">{{ $item->total_sold }} قطعة</div>
+                            </div>
+                            <div class="text-white font-bold">{{ number_format($item->total_revenue, 2) }} ج.م</div>
+                        </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="empty-state">
+                        <i class="fas fa-box-open"></i>
+                        <p>لا توجد مبيعات لهذا اليوم</p>
+                    </div>
+                @endif
+            </div>
         </div>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead class="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">المنتج</th>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">الكمية المباعة</th>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">إجمالي الإيرادات</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    @foreach($topProducts as $item)
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                            {{ $item->product->name }}
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                            {{ $item->total_sold }}
-                        </td>
-                        <td class="px-6 py-4 text-sm font-semibold text-green-600 dark:text-green-400">
-                            {{ number_format($item->total_revenue, 2) }} ج.م
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+
+        <!-- فواتير اليوم -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    فواتير اليوم
+                </h3>
+            </div>
+            <div class="card-content">
+                @if($invoices->count() > 0)
+                    <div class="space-y-3 max-h-80 overflow-y-auto">
+                        @foreach($invoices->take(10) as $invoice)
+                        <div class="flex items-center justify-between p-3 bg-white bg-opacity-10 rounded-lg">
+                            <div>
+                                <div class="text-white font-semibold">#{{ $invoice->id }}</div>
+                                <div class="text-gray-300 text-sm">{{ $invoice->created_at->format('H:i') }}</div>
+                                <div class="text-gray-300 text-sm">{{ $invoice->user->name ?? 'غير محدد' }}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-white font-bold">{{ number_format($invoice->total, 2) }} ج.م</div>
+                                <div class="text-gray-300 text-sm">{{ $invoice->items->sum('quantity') }} قطعة</div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="empty-state">
+                        <i class="fas fa-file-invoice"></i>
+                        <p>لا توجد فواتير لهذا اليوم</p>
+                    </div>
+                @endif
+            </div>
         </div>
     </div>
-    @endif
 
-    <!-- تفاصيل الفواتير -->
+    <!-- جدول تفصيلي للفواتير -->
     @if($invoices->count() > 0)
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">تفاصيل الفواتير</h3>
+    <div class="dashboard-card full-width">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-table"></i>
+                جدول الفواتير التفصيلي
+            </h3>
         </div>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead class="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">رقم الفاتورة</th>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">العميل</th>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">الإجمالي</th>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">الوقت</th>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">الموظف</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    @foreach($invoices as $invoice)
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                            {{ $invoice->invoice_number }}
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                            {{ $invoice->customer_name ?? 'عميل مجهول' }}
-                        </td>
-                        <td class="px-6 py-4 text-sm font-semibold text-green-600 dark:text-green-400">
-                            {{ number_format($invoice->total, 2) }} ج.م
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                            {{ $invoice->created_at->format('H:i') }}
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                            {{ $invoice->user->name }}
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+        <div class="card-content">
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="border-b border-white border-opacity-20">
+                            <th class="text-right py-3 px-4 text-white font-semibold">رقم الفاتورة</th>
+                            <th class="text-right py-3 px-4 text-white font-semibold">الوقت</th>
+                            <th class="text-right py-3 px-4 text-white font-semibold">البائع</th>
+                            <th class="text-right py-3 px-4 text-white font-semibold">عدد الأصناف</th>
+                            <th class="text-right py-3 px-4 text-white font-semibold">الإجمالي</th>
+                            <th class="text-right py-3 px-4 text-white font-semibold">الخصم</th>
+                            <th class="text-right py-3 px-4 text-white font-semibold">المجموع النهائي</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($invoices as $invoice)
+                        <tr class="border-b border-white border-opacity-10 hover:bg-white hover:bg-opacity-5">
+                            <td class="py-3 px-4 text-white">#{{ $invoice->id }}</td>
+                            <td class="py-3 px-4 text-gray-300">{{ $invoice->created_at->format('H:i:s') }}</td>
+                            <td class="py-3 px-4 text-gray-300">{{ $invoice->user->name ?? 'غير محدد' }}</td>
+                            <td class="py-3 px-4 text-gray-300">{{ $invoice->items->sum('quantity') }}</td>
+                            <td class="py-3 px-4 text-gray-300">{{ number_format($invoice->subtotal, 2) }} ج.م</td>
+                            <td class="py-3 px-4 text-gray-300">{{ number_format($invoice->discount, 2) }} ج.م</td>
+                            <td class="py-3 px-4 text-white font-semibold">{{ number_format($invoice->total, 2) }} ج.م</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
-    @else
-    <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow text-center">
-        <i class="fas fa-file-invoice text-gray-400 text-5xl mb-4"></i>
-        <h3 class="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">لا توجد فواتير</h3>
-        <p class="text-gray-500 dark:text-gray-500">لم يتم إنشاء أي فاتورة في هذا التاريخ</p>
     </div>
     @endif
 </div>

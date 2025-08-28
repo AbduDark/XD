@@ -2,137 +2,181 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="p-6">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">تقرير قيمة المخزون</h1>
-        <a href="{{ route('reports.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
-            <i class="fas fa-arrow-right ml-2"></i>
-            العودة للتقارير
-        </a>
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">
+            <i class="fas fa-dollar-sign ml-3"></i>
+            تقرير قيمة المخزون
+        </h1>
+        <p class="dashboard-subtitle">تحليل شامل لقيمة المنتجات المتوفرة بأسعار البيع والشراء</p>
     </div>
 
-    <!-- إحصائيات القيمة -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">القيمة بسعر البيع</h3>
-            <p class="text-3xl font-bold text-green-600 dark:text-green-400">{{ number_format($totalSellingValue, 2) }} ج.م</p>
+    <!-- إحصائيات قيمة المخزون -->
+    <div class="stats-grid">
+        <div class="stat-card stat-success">
+            <div class="stat-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="stat-number">{{ number_format($totalSellingValue, 2) }}</div>
+            <div class="stat-label">قيمة المخزون بسعر البيع (ج.م)</div>
         </div>
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">القيمة بسعر الشراء</h3>
-            <p class="text-3xl font-bold text-blue-600 dark:text-blue-400">{{ number_format($totalPurchaseValue, 2) }} ج.م</p>
+
+        <div class="stat-card stat-primary">
+            <div class="stat-icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <div class="stat-number">{{ number_format($totalPurchaseValue, 2) }}</div>
+            <div class="stat-label">قيمة المخزون بسعر الشراء (ج.م)</div>
         </div>
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">الربح المتوقع</h3>
-            <p class="text-3xl font-bold text-purple-600 dark:text-purple-400">{{ number_format($expectedProfit, 2) }} ج.م</p>
+
+        <div class="stat-card stat-warning">
+            <div class="stat-icon">
+                <i class="fas fa-coins"></i>
+            </div>
+            <div class="stat-number">{{ number_format($expectedProfit, 2) }}</div>
+            <div class="stat-label">الربح المتوقع (ج.م)</div>
         </div>
-        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">إجمالي المنتجات</h3>
-            <p class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">{{ $products->count() }}</p>
+
+        <div class="stat-card stat-info">
+            <div class="stat-icon">
+                <i class="fas fa-percentage"></i>
+            </div>
+            <div class="stat-number">{{ $totalPurchaseValue > 0 ? number_format(($expectedProfit / $totalPurchaseValue) * 100, 1) : 0 }}%</div>
+            <div class="stat-label">نسبة الربح المتوقعة</div>
         </div>
     </div>
 
-    <!-- إحصائيات حسب الفئات -->
-    @if($categoryStats->count() > 0)
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-8">
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">إحصائيات حسب الفئات</h3>
+    <div class="dashboard-grid">
+        <!-- إحصائيات الفئات -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-chart-pie"></i>
+                    إحصائيات الفئات
+                </h3>
+            </div>
+            <div class="card-content">
+                @if($categoryStats->count() > 0)
+                    <div class="space-y-4">
+                        @foreach($categoryStats as $category => $stats)
+                        <div class="p-4 bg-white bg-opacity-10 rounded-lg">
+                            <div class="flex justify-between items-center mb-2">
+                                <h4 class="text-white font-semibold">{{ $category ?? 'بدون فئة' }}</h4>
+                                <span class="text-gray-300 text-sm">{{ $stats['products_count'] }} منتج</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <span class="text-gray-300">الكمية:</span>
+                                    <span class="text-white font-semibold">{{ number_format($stats['total_quantity']) }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-gray-300">قيمة البيع:</span>
+                                    <span class="text-white font-semibold">{{ number_format($stats['selling_value'], 0) }} ج.م</span>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="empty-state">
+                        <i class="fas fa-tags"></i>
+                        <p>لا توجد فئات محددة</p>
+                    </div>
+                @endif
+            </div>
         </div>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead class="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">الفئة</th>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">عدد المنتجات</th>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">إجمالي الكمية</th>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">قيمة البيع</th>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">قيمة الشراء</th>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">الربح المتوقع</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    @foreach($categoryStats as $categoryName => $stats)
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                            {{ $categoryName ?? 'غير محدد' }}
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                            {{ $stats['products_count'] }}
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                            {{ number_format($stats['total_quantity']) }}
-                        </td>
-                        <td class="px-6 py-4 text-sm font-semibold text-green-600 dark:text-green-400">
-                            {{ number_format($stats['selling_value'], 2) }} ج.م
-                        </td>
-                        <td class="px-6 py-4 text-sm font-semibold text-blue-600 dark:text-blue-400">
-                            {{ number_format($stats['purchase_value'], 2) }} ج.م
-                        </td>
-                        <td class="px-6 py-4 text-sm font-semibold text-purple-600 dark:text-purple-400">
-                            {{ number_format($stats['selling_value'] - $stats['purchase_value'], 2) }} ج.م
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+
+        <!-- تنبيهات المخزون -->
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    تنبيهات المخزون
+                </h3>
+            </div>
+            <div class="card-content">
+                <div class="space-y-4">
+                    <div class="p-4 bg-red-500 bg-opacity-20 rounded-lg border border-red-500 border-opacity-30">
+                        <div class="flex items-center justify-between">
+                            <span class="text-white font-semibold">منتجات نفدت</span>
+                            <span class="text-red-300 font-bold">{{ $outOfStockProducts->count() }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 bg-yellow-500 bg-opacity-20 rounded-lg border border-yellow-500 border-opacity-30">
+                        <div class="flex items-center justify-between">
+                            <span class="text-white font-semibold">منتجات قليلة المخزون</span>
+                            <span class="text-yellow-300 font-bold">{{ $lowStockProducts->count() }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 bg-green-500 bg-opacity-20 rounded-lg border border-green-500 border-opacity-30">
+                        <div class="flex items-center justify-between">
+                            <span class="text-white font-semibold">إجمالي المنتجات</span>
+                            <span class="text-green-300 font-bold">{{ $products->count() }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-    @endif
 
-    <!-- تفاصيل جميع المنتجات -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">تفاصيل جميع المنتجات</h3>
+    <!-- جدول المنتجات التفصيلي -->
+    <div class="dashboard-card full-width">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-table"></i>
+                جدول المنتجات التفصيلي
+            </h3>
         </div>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead class="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">المنتج</th>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">الفئة</th>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">الكمية</th>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">سعر الشراء</th>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">سعر البيع</th>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">قيمة الشراء</th>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">قيمة البيع</th>
-                        <th class="px-6 py-3 text-right text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">الربح المتوقع</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    @foreach($products as $product)
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 {{ $product->quantity <= $product->min_quantity ? 'bg-red-50 dark:bg-red-900/20' : '' }}">
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                            {{ $product->name }}
-                            @if($product->quantity == 0)
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 mr-2">نفد</span>
-                            @elseif($product->quantity <= $product->min_quantity)
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200 mr-2">قليل</span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                            {{ $product->category->name_ar ?? 'غير محدد' }}
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                            {{ number_format($product->quantity) }}
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                            {{ number_format($product->purchase_price, 2) }} ج.م
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">
-                            {{ number_format($product->selling_price, 2) }} ج.م
-                        </td>
-                        <td class="px-6 py-4 text-sm font-semibold text-blue-600 dark:text-blue-400">
-                            {{ number_format($product->quantity * $product->purchase_price, 2) }} ج.م
-                        </td>
-                        <td class="px-6 py-4 text-sm font-semibold text-green-600 dark:text-green-400">
-                            {{ number_format($product->quantity * $product->selling_price, 2) }} ج.م
-                        </td>
-                        <td class="px-6 py-4 text-sm font-semibold text-purple-600 dark:text-purple-400">
-                            {{ number_format($product->quantity * ($product->selling_price - $product->purchase_price), 2) }} ج.م
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+        <div class="card-content">
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="border-b border-white border-opacity-20">
+                            <th class="text-right py-3 px-4 text-white font-semibold">المنتج</th>
+                            <th class="text-right py-3 px-4 text-white font-semibold">الفئة</th>
+                            <th class="text-right py-3 px-4 text-white font-semibold">الكمية</th>
+                            <th class="text-right py-3 px-4 text-white font-semibold">سعر الشراء</th>
+                            <th class="text-right py-3 px-4 text-white font-semibold">سعر البيع</th>
+                            <th class="text-right py-3 px-4 text-white font-semibold">قيمة الشراء</th>
+                            <th class="text-right py-3 px-4 text-white font-semibold">قيمة البيع</th>
+                            <th class="text-right py-3 px-4 text-white font-semibold">الربح المتوقع</th>
+                            <th class="text-right py-3 px-4 text-white font-semibold">الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($products as $product)
+                        @php
+                            $purchaseValue = $product->quantity * $product->purchase_price;
+                            $sellingValue = $product->quantity * $product->selling_price;
+                            $expectedProfit = $sellingValue - $purchaseValue;
+                            $isLowStock = $product->quantity <= $product->min_quantity;
+                            $isOutOfStock = $product->quantity == 0;
+                        @endphp
+                        <tr class="border-b border-white border-opacity-10 hover:bg-white hover:bg-opacity-5 {{ $isOutOfStock ? 'bg-red-500 bg-opacity-10' : ($isLowStock ? 'bg-yellow-500 bg-opacity-10' : '') }}">
+                            <td class="py-3 px-4 text-white font-semibold">{{ $product->name }}</td>
+                            <td class="py-3 px-4 text-gray-300">{{ $product->category->name_ar ?? 'غير محدد' }}</td>
+                            <td class="py-3 px-4 text-gray-300">{{ number_format($product->quantity) }}</td>
+                            <td class="py-3 px-4 text-gray-300">{{ number_format($product->purchase_price, 2) }} ج.م</td>
+                            <td class="py-3 px-4 text-gray-300">{{ number_format($product->selling_price, 2) }} ج.م</td>
+                            <td class="py-3 px-4 text-blue-300">{{ number_format($purchaseValue, 2) }} ج.م</td>
+                            <td class="py-3 px-4 text-green-300">{{ number_format($sellingValue, 2) }} ج.م</td>
+                            <td class="py-3 px-4 text-purple-300">{{ number_format($expectedProfit, 2) }} ج.م</td>
+                            <td class="py-3 px-4">
+                                @if($isOutOfStock)
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500 bg-opacity-20 text-red-300 border border-red-500 border-opacity-30">نفد</span>
+                                @elseif($isLowStock)
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-500 bg-opacity-20 text-yellow-300 border border-yellow-500 border-opacity-30">قليل</span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500 bg-opacity-20 text-green-300 border border-green-500 border-opacity-30">متوفر</span>
+                                @endif
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
