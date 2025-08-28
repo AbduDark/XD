@@ -9,6 +9,7 @@ use App\Models\CashTransfer;
 use App\Models\InvoiceItem;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
@@ -70,14 +71,14 @@ class ReportController extends Controller
             $query->whereDate('created_at', $date);
         })
         ->with('product')
-        ->selectRaw('product_id, SUM(quantity) as total_sold, SUM(total) as total_revenue')
+        ->selectRaw('product_id, SUM(quantity) as total_sold, SUM(total_price) as total_revenue')
         ->groupBy('product_id')
         ->orderBy('total_sold', 'desc')
         ->take(10)
         ->get();
 
         return view('reports.daily', compact(
-            'date', 'dailySales', 'dailyInvoices', 'dailyProfit', 
+            'date', 'dailySales', 'dailyInvoices', 'dailyProfit',
             'invoices', 'topProducts'
         ));
     }
@@ -127,37 +128,26 @@ class ReportController extends Controller
     {
         $date = $request->date ? Carbon::parse($request->date) : Carbon::today();
 
-        // المبيعات
-        $sales = Invoice::whereDate('created_at', $date)->sum('total');
-        $invoicesCount = Invoice::whereDate('created_at', $date)->count();
+        // المبيعات اليومية
+        $dailySales = Invoice::whereDate('created_at', $date)->sum('total');
 
-        // الأرباح
-        $profit = $this->calculateDayProfit($date);
-
-        // المرتجعات
-        $returns = ReturnItem::whereDate('created_at', $date)->sum('amount');
+        // المرتجعات اليومية
+        $dailyReturns = ReturnItem::whereDate('created_at', $date)->sum('amount');
 
         // التحويلات النقدية
         $cashIn = CashTransfer::whereDate('created_at', $date)
-            ->where('type', 'in')->sum('amount');
+            ->where('type', 'in')
+            ->sum('amount');
+
         $cashOut = CashTransfer::whereDate('created_at', $date)
-            ->where('type', 'out')->sum('amount');
+            ->where('type', 'out')
+            ->sum('amount');
 
-        // صافي النقد
-        $netCash = $sales - $returns + $cashIn - $cashOut;
-
-        // المنتجات المباعة
-        $soldProducts = InvoiceItem::whereHas('invoice', function($query) use ($date) {
-            $query->whereDate('created_at', $date);
-        })
-        ->with('product')
-        ->selectRaw('product_id, SUM(quantity) as total_sold')
-        ->groupBy('product_id')
-        ->get();
+        // صافي النقدية
+        $netCash = $dailySales - $dailyReturns + $cashIn - $cashOut;
 
         return view('reports.daily-closing', compact(
-            'date', 'sales', 'invoicesCount', 'profit', 'returns',
-            'cashIn', 'cashOut', 'netCash', 'soldProducts'
+            'date', 'dailySales', 'dailyReturns', 'cashIn', 'cashOut', 'netCash'
         ));
     }
 
@@ -246,7 +236,7 @@ class ReportController extends Controller
         });
 
         return view('reports.repairs', compact(
-            'repairs', 'totalRepairs', 'totalRevenue', 'completedRepairs', 
+            'repairs', 'totalRepairs', 'totalRevenue', 'completedRepairs',
             'pendingRepairs', 'statusStats', 'dateFrom', 'dateTo'
         ));
     }

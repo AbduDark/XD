@@ -11,7 +11,7 @@ class CashTransfer extends Model
 
     protected $fillable = [
         'service', 'service_ar', 'amount', 'commission',
-        'customer_phone', 'notes', 'user_id'
+        'customer_phone', 'notes', 'user_id', 'type'
     ];
 
     protected $casts = [

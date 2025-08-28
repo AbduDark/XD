@@ -1,4 +1,3 @@
-
 @extends('layouts.app')
 
 @section('content')
@@ -9,11 +8,11 @@
             تقفيل يومي
         </h1>
         <p class="dashboard-subtitle">تقفيل شامل للمبيعات والحسابات ليوم {{ $date->format('d/m/Y') }}</p>
-        
+
         <div class="mt-4">
             <form method="GET" action="{{ route('reports.daily-closing') }}" class="flex justify-center">
                 <div class="flex items-center bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-2">
-                    <input type="date" name="date" value="{{ $date->format('Y-m-d') }}" 
+                    <input type="date" name="date" value="{{ $date->format('Y-m-d') }}"
                            class="bg-transparent text-white placeholder-gray-300 border-0 focus:ring-0 px-3 py-2">
                     <button type="submit" class="bg-white bg-opacity-30 hover:bg-opacity-40 text-white px-4 py-2 rounded-lg transition-all duration-200">
                         <i class="fas fa-search ml-2"></i>
@@ -84,14 +83,14 @@
                             <span class="text-green-300 font-bold">{{ number_format($cashIn, 2) }} ج.م</span>
                         </div>
                     </div>
-                    
+
                     <div class="p-4 bg-red-500 bg-opacity-20 rounded-lg border border-red-500 border-opacity-30">
                         <div class="flex items-center justify-between">
                             <span class="text-white font-semibold">نقد خارج</span>
                             <span class="text-red-300 font-bold">{{ number_format($cashOut, 2) }} ج.م</span>
                         </div>
                     </div>
-                    
+
                     <div class="p-4 bg-blue-500 bg-opacity-20 rounded-lg border border-blue-500 border-opacity-30">
                         <div class="flex items-center justify-between">
                             <span class="text-white font-semibold">صافي المبيعات</span>
@@ -160,7 +159,7 @@
                     <div class="text-white text-lg">إجمالي المبيعات (ج.م)</div>
                     <div class="text-gray-300 text-sm mt-1">من {{ $invoicesCount }} فاتورة</div>
                 </div>
-                
+
                 <div class="p-6 bg-white bg-opacity-10 rounded-lg text-center">
                     <div class="text-4xl font-bold text-purple-400 mb-2">{{ number_format($profit, 0) }}</div>
                     <div class="text-white text-lg">صافي الربح (ج.م)</div>
@@ -168,14 +167,14 @@
                         {{ $sales > 0 ? number_format(($profit / $sales) * 100, 1) : 0 }}% هامش ربح
                     </div>
                 </div>
-                
+
                 <div class="p-6 bg-white bg-opacity-10 rounded-lg text-center">
                     <div class="text-4xl font-bold text-blue-400 mb-2">{{ number_format($netCash, 0) }}</div>
                     <div class="text-white text-lg">صافي النقد (ج.م)</div>
                     <div class="text-gray-300 text-sm mt-1">نقد + مبيعات - مرتجعات</div>
                 </div>
             </div>
-            
+
             <div class="mt-6 p-4 bg-gradient-to-r from-purple-500 to-blue-500 bg-opacity-20 rounded-lg border border-purple-500 border-opacity-30">
                 <div class="text-center">
                     <div class="text-white text-lg font-semibold">تم تقفيل يوم {{ $date->format('d/m/Y') }} بنجاح</div>
