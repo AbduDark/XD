@@ -129,10 +129,18 @@ class ReportController extends Controller
         $date = $request->date ? Carbon::parse($request->date) : Carbon::today();
 
         // المبيعات اليومية
-        $dailySales = Invoice::whereDate('created_at', $date)->sum('total');
+        $sales = Invoice::whereDate('created_at', $date)->sum('total');
+        $dailySales = $sales;
+
+        // عدد الفواتير
+        $invoicesCount = Invoice::whereDate('created_at', $date)->count();
+
+        // حساب الربح
+        $profit = $this->calculateDayProfit($date);
 
         // المرتجعات اليومية
-        $dailyReturns = ReturnItem::whereDate('created_at', $date)->sum('amount');
+        $returns = ReturnItem::whereDate('created_at', $date)->sum('amount');
+        $dailyReturns = $returns;
 
         // التحويلات النقدية
         $cashIn = CashTransfer::whereDate('created_at', $date)
@@ -144,10 +152,20 @@ class ReportController extends Controller
             ->sum('amount');
 
         // صافي النقدية
-        $netCash = $dailySales - $dailyReturns + $cashIn - $cashOut;
+        $netCash = $sales - $returns + $cashIn - $cashOut;
+
+        // المنتجات المباعة
+        $soldProducts = InvoiceItem::whereHas('invoice', function($query) use ($date) {
+            $query->whereDate('created_at', $date);
+        })
+        ->with('product')
+        ->selectRaw('product_id, SUM(quantity) as total_sold')
+        ->groupBy('product_id')
+        ->get();
 
         return view('reports.daily-closing', compact(
-            'date', 'dailySales', 'dailyReturns', 'cashIn', 'cashOut', 'netCash'
+            'date', 'sales', 'profit', 'returns', 'cashIn', 'cashOut', 'netCash', 
+            'invoicesCount', 'soldProducts', 'dailySales', 'dailyReturns'
         ));
     }
 

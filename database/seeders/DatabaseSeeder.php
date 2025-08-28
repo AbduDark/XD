@@ -18,8 +18,7 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             InvoiceSeeder::class,
             RepairSeeder::class,
-            // CashTransferSeeder::class,
-            // ReturnSeeder::class,
+            ReportsSeeder::class,
         ]);
     }
 }
