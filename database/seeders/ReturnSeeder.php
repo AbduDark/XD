@@ -14,6 +14,7 @@ class ReturnSeeder extends Seeder
     {
         $users = User::all();
         $products = Product::all();
+        $invoices = \App\Models\Invoice::all();
         $reasons = ['منتج معيب', 'عدم مطابقة الوصف', 'طلب العميل', 'منتج منتهي الصلاحية'];
 
         for ($i = 1; $i <= 15; $i++) {
@@ -22,8 +23,12 @@ class ReturnSeeder extends Seeder
 
             $stores = \App\Models\Store::all();
             $storeId = $stores->isNotEmpty() ? $stores->random()->id : 1;
+            
+            // احصل على فاتورة عشوائية أو اتركها فارغة
+            $invoiceId = $invoices->isNotEmpty() && rand(1, 10) > 3 ? $invoices->random()->id : null;
 
             ReturnItem::create([
+                'invoice_id' => $invoiceId,
                 'product_id' => $product->id,
                 'quantity' => $quantity,
                 'amount' => $quantity * $product->selling_price,

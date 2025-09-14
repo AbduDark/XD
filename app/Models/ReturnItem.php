@@ -11,6 +11,10 @@ class ReturnItem extends Model
     protected $table = 'returns';
 
     protected $fillable = [
+        'invoice_id',
+        'product_id',
+        'user_id',
+        'store_id',
         'product_name',
         'quantity',
         'amount',
@@ -21,6 +25,21 @@ class ReturnItem extends Model
         'amount' => 'decimal:2',
         'quantity' => 'integer'
     ];
+
+    public function invoice()
+    {
+        return $this->belongsTo(Invoice::class);
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function store()
     {

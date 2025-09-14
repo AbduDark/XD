@@ -10,9 +10,10 @@ return new class extends Migration
     {
         Schema::create('returns', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('invoice_id')->constrained();
+            $table->foreignId('invoice_id')->nullable()->constrained();
             $table->foreignId('product_id')->constrained();
             $table->foreignId('user_id')->constrained();
+            $table->foreignId('store_id')->constrained();
             $table->integer('quantity');
             $table->decimal('amount', 10, 2);
             $table->text('reason');
