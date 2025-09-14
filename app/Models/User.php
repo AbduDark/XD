@@ -47,6 +47,34 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Check if user is super admin
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
+    }
+
+    /**
+     * Check if user can access specific store
+     */
+    public function canAccessStore($storeId): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        return $this->stores()->where('store_id', $storeId)->exists();
+    }
+
+    /**
+     * Get user's stores relationship
+     */
+    public function stores()
+    {
+        return $this->belongsToMany(Store::class, 'store_users', 'user_id', 'store_id');
+    }
+
     public function invoices()
     {
         return $this->hasMany(Invoice::class);

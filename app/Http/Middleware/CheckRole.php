@@ -9,7 +9,17 @@ class CheckRole
 {
     public function handle(Request $request, Closure $next, $role)
     {
-        if (!auth()->check() || auth()->user()->role !== $role) {
+        if (!auth()->check()) {
+            return redirect()->route('login');
+        }
+
+        $user = auth()->user();
+        
+        if ($user->role !== $role) {
+            if ($user->role === 'super_admin') {
+                // Super admin can access everything
+                return $next($request);
+            }
             abort(403, 'غير مصرح لك بالوصول لهذه الصفحة');
         }
 
