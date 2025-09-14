@@ -1,35 +1,44 @@
+
 <?php
 
-// namespace Database\Seeders;
+namespace Database\Seeders;
 
-// use App\Models\CashTransfer;
-// use App\Models\User;
-// use Illuminate\Database\Seeder;
-// use Carbon\Carbon;
+use App\Models\CashTransfer;
+use App\Models\User;
+use Illuminate\Database\Seeder;
+use Carbon\Carbon;
 
-// class CashTransferSeeder extends Seeder
-// {
-//     public function run()
-//     {
-//         $users = User::all();
-//         $types = ['in', 'out'];
-//         $descriptions = [
-//             'in' => ['إيداع نقدي', 'تحصيل فاتورة', 'مبيعات نقدية', 'إيراد إضافي'],
-//             'out' => ['سحب نقدي', 'شراء منتجات', 'مصاريف تشغيلية', 'مرتبات']
-//         ];
+class CashTransferSeeder extends Seeder
+{
+    public function run()
+    {
+        $users = User::all();
+        $stores = \App\Models\Store::all();
+        
+        if ($stores->isEmpty() || $users->isEmpty()) {
+            return;
+        }
 
-//         for ($i = 1; $i <= 50; $i++) {
-//             $type = $types[rand(0, 1)];
-//             $typeDescriptions = $descriptions[$type];
+        $services = ['vodafone_cash', 'etisalat_cash', 'orange_cash', 'access_cash', 'cards'];
+        $servicesAr = ['فودافون كاش', 'اتصالات كاش', 'أورانج كاش', 'أكسيس كاش', 'كروت'];
 
-//             CashTransfer::create([
-//                 'type' => $type,
-//                 'amount' => rand(100, 5000),
-//                 'description' => $typeDescriptions[rand(0, count($typeDescriptions) - 1)],
-//                 'user_id' => $users->random()->id,
-//                 'created_at' => Carbon::now()->subDays(rand(0, 30)),
-//                 'updated_at' => Carbon::now()->subDays(rand(0, 29)),
-//             ]);
-//         }
-//     }
-// }
+        for ($i = 1; $i <= 30; $i++) {
+            $serviceIndex = rand(0, count($services) - 1);
+            $amount = rand(100, 2000);
+            
+            CashTransfer::create([
+                'service' => $services[$serviceIndex],
+                'service_ar' => $servicesAr[$serviceIndex],
+                'amount' => $amount,
+                'commission' => $amount * 0.02, // 2% commission
+                'customer_phone' => '01' . rand(100000000, 999999999),
+                'notes' => 'تحويل نقدي رقم ' . $i,
+                'user_id' => $users->random()->id,
+                'store_id' => $stores->random()->id,
+                'type' => ['in', 'out'][rand(0, 1)],
+                'created_at' => Carbon::now()->subDays(rand(0, 30)),
+                'updated_at' => Carbon::now()->subDays(rand(0, 29)),
+            ]);
+        }
+    }
+}

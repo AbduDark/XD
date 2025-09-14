@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -11,9 +12,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('cash_transfers', function (Blueprint $table) {
-            //
-        });
+        // This migration was already handled by 2025_08_28_000001_add_type_to_cash_transfers_table
+        // Keeping empty to avoid conflicts
     }
 
     /**
@@ -21,8 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('cash_transfers', function (Blueprint $table) {
-            //
-        });
+        // This migration was already handled by 2025_08_28_000001_add_type_to_cash_transfers_table
+        // Keeping empty to avoid conflicts
     }
 };

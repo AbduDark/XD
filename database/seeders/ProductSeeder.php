@@ -12,26 +12,8 @@ class ProductSeeder extends Seeder
     {
         $categories = ProductCategory::all();
         
-        // Get available stores or create default store if none exist
+        // Get available stores
         $stores = \App\Models\Store::all();
-        if ($stores->isEmpty()) {
-            $defaultStore = \App\Models\Store::create([
-                'name' => 'المتجر الافتراضي',
-                'name_ar' => 'المتجر الافتراضي',
-                'slug' => 'default-store',
-                'description' => 'المتجر الافتراضي للنظام',
-                'description_ar' => 'المتجر الافتراضي للنظام',
-                'owner_id' => 1, // Assuming super admin has id 1
-                'phone' => '+966500000000',
-                'address' => 'الرياض، السعودية',
-                'address_ar' => 'الرياض، السعودية',
-                'email' => 'default@store.com',
-                'tax_rate' => 15.00,
-                'currency' => 'SAR',
-                'is_active' => true,
-            ]);
-            $stores = collect([$defaultStore]);
-        }
 
         $products = [
             ['name' => 'iPhone 15 Pro', 'name_ar' => 'آيفون 15 برو', 'code' => 'IP15P', 'purchase_price' => 45000, 'selling_price' => 50000],
