@@ -17,6 +17,7 @@
 
         <form method="POST" action="{{ route('login') }}">
             @csrf
+            <meta name="csrf-token" content="{{ csrf_token() }}">
 
             <!-- Email Address -->
             <div>
