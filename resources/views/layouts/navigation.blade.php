@@ -40,10 +40,19 @@
                     <x-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
                         {{ __('التقارير') }}
                     </x-nav-link>
+                    @endif
 
                     @if(auth()->user()->isSuperAdmin())
-                    <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.*')">
-                        {{ __('المستخدمين') }}
+                    <x-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                        {{ __('لوحة الأدمن') }}
+                    </x-nav-link>
+                    
+                    <x-nav-link :href="route('admin.stores.index')" :active="request()->routeIs('admin.stores.*')">
+                        {{ __('إدارة المتاجر') }}
+                    </x-nav-link>
+                    
+                    <x-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+                        {{ __('إدارة المستخدمين') }}
                     </x-nav-link>
                     @endif
                 </div>
@@ -119,6 +128,20 @@
             @if(auth()->user()->role === 'admin')
             <x-responsive-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
                 {{ __('التقارير') }}
+            </x-responsive-nav-link>
+            @endif
+            
+            @if(auth()->user()->isSuperAdmin())
+            <x-responsive-nav-link :href="route('admin.dashboard')" :active="request()->routeIs('admin.dashboard')">
+                {{ __('لوحة الأدمن') }}
+            </x-responsive-nav-link>
+            
+            <x-responsive-nav-link :href="route('admin.stores.index')" :active="request()->routeIs('admin.stores.*')">
+                {{ __('إدارة المتاجر') }}
+            </x-responsive-nav-link>
+            
+            <x-responsive-nav-link :href="route('admin.users.index')" :active="request()->routeIs('admin.users.*')">
+                {{ __('إدارة المستخدمين') }}
             </x-responsive-nav-link>
             @endif
         </div>

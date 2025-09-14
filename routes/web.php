@@ -11,11 +11,14 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\BackupController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\StoreManagementController;
+use App\Http\Controllers\Admin\UserManagementController;
 
 Route::get('/', function () {
     if (auth()->check()) {
         if (auth()->user()->isSuperAdmin()) {
-            return redirect()->route('users.index');
+            return redirect()->route('admin.dashboard');
         }
         return redirect()->route('dashboard');
     }
@@ -67,9 +70,33 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/backup', [BackupController::class, 'create'])->name('backup.create');
     Route::post('/backup/download', [BackupController::class, 'download'])->name('backup.download');
 
-    // User management routes (Super Admin only)
+    // Admin routes (Super Admin only)
+    Route::middleware(['role:super_admin'])->prefix('admin')->name('admin.')->group(function () {
+        // Admin Dashboard
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard/stores-analytics', [AdminDashboardController::class, 'storesAnalytics'])->name('dashboard.stores-analytics');
+        Route::get('/dashboard/system-health', [AdminDashboardController::class, 'systemHealth'])->name('dashboard.system-health');
+        
+        // Store Management
+        Route::resource('stores', StoreManagementController::class);
+        Route::patch('/stores/{store}/toggle-status', [StoreManagementController::class, 'toggleStatus'])->name('stores.toggle-status');
+        Route::post('/stores/{store}/assign-user', [StoreManagementController::class, 'assignUser'])->name('stores.assign-user');
+        Route::delete('/stores/{store}/users/{user}', [StoreManagementController::class, 'removeUser'])->name('stores.remove-user');
+        
+        // User Management
+        Route::resource('users', UserManagementController::class);
+        Route::patch('/users/{user}/toggle-status', [UserManagementController::class, 'toggleStatus'])->name('users.toggle-status');
+        Route::post('/users/{user}/impersonate', [UserManagementController::class, 'impersonate'])->name('users.impersonate');
+        Route::post('/users/stop-impersonating', [UserManagementController::class, 'stopImpersonating'])->name('users.stop-impersonating');
+        Route::post('/users/bulk-action', [UserManagementController::class, 'bulkAction'])->name('users.bulk-action');
+    });
+
+    // Legacy user management routes (Super Admin only) - redirects to new admin routes
     Route::middleware(['role:super_admin'])->group(function () {
-        Route::resource('users', UserController::class);
+        Route::get('/users', function() {
+            return redirect()->route('admin.users.index');
+        })->name('users.index');
+        Route::resource('users', UserController::class)->except(['index']);
     });
 });
 

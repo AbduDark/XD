@@ -6,7 +6,7 @@ channel = "stable-25_05"
 packages = ["openssh_gssapi"]
 
 [workflows]
-runButton = "Run Laravel Server"
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Run Laravel Server"
@@ -17,9 +17,34 @@ mode = "sequential"
 task = "shell.exec"
 args = "php artisan serve --host=0.0.0.0 --port=5000"
 
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Laravel Server"
+
+[[workflows.workflow]]
+name = "Laravel Server"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd /home/runner/$(basename \"$PWD\") && php artisan serve --host=0.0.0.0 --port=5000"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [deployment]
 run = ["sh", "-c", "npm run dev"]
 
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[[ports]]
+localPort = 38057
+externalPort = 3000
