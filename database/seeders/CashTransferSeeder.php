@@ -1,4 +1,3 @@
-
 <?php
 
 namespace Database\Seeders;
@@ -14,7 +13,7 @@ class CashTransferSeeder extends Seeder
     {
         $users = User::all();
         $stores = \App\Models\Store::all();
-        
+
         if ($stores->isEmpty() || $users->isEmpty()) {
             return;
         }
@@ -25,7 +24,7 @@ class CashTransferSeeder extends Seeder
         for ($i = 1; $i <= 30; $i++) {
             $serviceIndex = rand(0, count($services) - 1);
             $amount = rand(100, 2000);
-            
+
             CashTransfer::create([
                 'service' => $services[$serviceIndex],
                 'service_ar' => $servicesAr[$serviceIndex],

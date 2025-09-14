@@ -1,4 +1,3 @@
-
 <?php
 
 namespace Database\Seeders;
@@ -13,7 +12,7 @@ class StoreSeeder extends Seeder
     {
         // إنشاء متجر افتراضي للمدير العام
         $superAdmin = User::where('role', 'super_admin')->first();
-        
+
         if ($superAdmin) {
             $store = Store::create([
                 'name' => 'Al-Hussiny Store',
@@ -40,7 +39,7 @@ class StoreSeeder extends Seeder
 
         // إنشاء متاجر إضافية
         $owners = User::where('role', 'admin')->take(3)->get();
-        
+
         foreach ($owners as $owner) {
             $store = Store::create([
                 'name' => 'Store ' . $owner->name,
