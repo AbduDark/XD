@@ -8,6 +8,10 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth', 'store.access']);
+    }
     public function apiIndex()
     {
         $products = Product::select('id', 'name', 'price', 'quantity')
@@ -90,6 +94,7 @@ class ProductController extends Controller
             'min_quantity' => 'nullable|integer|min:0',
         ]);
 
+        // The store_id will be automatically assigned via the model's booted method
         Product::create($request->all());
 
         return redirect()->route('products.index')->with('success', 'تم إضافة المنتج بنجاح');

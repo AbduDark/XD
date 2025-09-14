@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Scopes\StoreScope;
+use Illuminate\Support\Facades\Auth;
 
 class Repair extends Model
 {
@@ -24,12 +26,31 @@ class Repair extends Model
         return $this->belongsTo(User::class);
     }
 
-    protected static function boot()
+    public function store()
     {
+        return $this->belongsTo(Store::class);
+    }
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new StoreScope);
         parent::boot();
 
         static::creating(function ($repair) {
-            $repair->repair_number = 'REP-' . date('Y') . '-' . str_pad(static::count() + 1, 6, '0', STR_PAD_LEFT);
+            // Auto-assign store_id
+            if (Auth::check() && !Auth::user()->isSuperAdmin()) {
+                $currentStoreId = session('current_store_id');
+                if ($currentStoreId) {
+                    $repair->store_id = $currentStoreId;
+                    // Generate repair number per store
+                    $storeRepairCount = static::where('store_id', $currentStoreId)->count();
+                    $repair->repair_number = 'REP-' . date('Y') . '-S' . $currentStoreId . '-' . str_pad($storeRepairCount + 1, 6, '0', STR_PAD_LEFT);
+                } else {
+                    $repair->repair_number = 'REP-' . date('Y') . '-' . str_pad(static::count() + 1, 6, '0', STR_PAD_LEFT);
+                }
+            } else {
+                $repair->repair_number = 'REP-' . date('Y') . '-' . str_pad(static::count() + 1, 6, '0', STR_PAD_LEFT);
+            }
         });
     }
 }

@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Scopes\StoreScope;
+use Illuminate\Support\Facades\Auth;
 
 class Product extends Model
 {
@@ -25,6 +27,11 @@ class Product extends Model
         return $this->belongsTo(ProductCategory::class);
     }
 
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
+    }
+
     public function invoiceItems()
     {
         return $this->hasMany(InvoiceItem::class);
@@ -43,5 +50,19 @@ class Product extends Model
     public function getProfit()
     {
         return $this->selling_price - $this->purchase_price;
+    }
+
+    protected static function booted()
+    {
+        static::addGlobalScope(new StoreScope);
+        
+        static::creating(function ($product) {
+            if (Auth::check() && !Auth::user()->isSuperAdmin()) {
+                $currentStoreId = session('current_store_id');
+                if ($currentStoreId) {
+                    $product->store_id = $currentStoreId;
+                }
+            }
+        });
     }
 }

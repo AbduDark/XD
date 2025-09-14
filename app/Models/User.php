@@ -67,6 +67,21 @@ class User extends Authenticatable
         return $this->hasMany(ReturnItem::class);
     }
 
+    public function ownedStores()
+    {
+        return $this->hasMany(Store::class, 'owner_id');
+    }
+
+    public function stores()
+    {
+        return $this->belongsToMany(Store::class, 'store_users')->withPivot('role', 'is_active')->withTimestamps();
+    }
+
+    public function currentStore()
+    {
+        return $this->stores()->wherePivot('is_active', true)->first() ?? $this->ownedStores()->where('is_active', true)->first();
+    }
+
     public function isSuperAdmin()
     {
         return $this->role === 'super_admin';
@@ -80,5 +95,15 @@ class User extends Authenticatable
     public function isEmployee()
     {
         return $this->role === 'employee';
+    }
+
+    public function canAccessStore($storeId)
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+        
+        return $this->ownedStores()->where('id', $storeId)->exists() 
+            || $this->stores()->wherePivot('is_active', true)->where('stores.id', $storeId)->exists();
     }
 }

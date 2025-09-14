@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\DB;
 
 class InvoiceController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(['auth', 'store.access']);
+    }
     public function index(Request $request)
     {
         $query = Invoice::with('items.product')->latest();
@@ -52,11 +56,8 @@ class InvoiceController extends Controller
         try {
             DB::beginTransaction();
 
-            // إنشاء رقم الفاتورة
-            $invoiceNumber = 'INV-' . now()->format('Ymd') . '-' . str_pad(Invoice::count() + 1, 4, '0', STR_PAD_LEFT);
-
+            // Invoice number and store_id will be automatically assigned via the model's booted method
             $invoice = Invoice::create([
-                'invoice_number' => $invoiceNumber,
                 'customer_name' => $request->customer_name,
                 'customer_phone' => $request->customer_phone,
                 'subtotal' => 0,

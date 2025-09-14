@@ -11,8 +11,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Register custom middleware globally for authenticated routes
+        $middleware->web(append: [
+            \App\Http\Middleware\ResolveCurrentStore::class,
+        ]);
+        
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
+            'store.resolve' => \App\Http\Middleware\ResolveCurrentStore::class,
+            'store.access' => \App\Http\Middleware\CheckStoreAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
