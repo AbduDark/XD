@@ -13,11 +13,14 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            SuperAdminSeeder::class, // This creates stores and users first
             ProductCategorySeeder::class,
             UserSeeder::class,
             ProductSeeder::class,
             InvoiceSeeder::class,
             RepairSeeder::class,
+            ReturnSeeder::class,
+            // CashTransferSeeder::class,
             ReportsSeeder::class,
         ]);
     }

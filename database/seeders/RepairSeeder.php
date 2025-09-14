@@ -18,6 +18,9 @@ class RepairSeeder extends Seeder
         $statuses = ['pending', 'in_progress', 'completed', 'delivered'];
 
         for ($i = 1; $i <= 30; $i++) {
+            $stores = \App\Models\Store::all();
+            $storeId = $stores->isNotEmpty() ? $stores->random()->id : 1;
+
             Repair::create([
                 'repair_number' => 'REP-2025-' . str_pad($i, 6, '0', STR_PAD_LEFT),
                 'customer_name' => 'عميل الصيانة ' . $i,
@@ -28,6 +31,7 @@ class RepairSeeder extends Seeder
                 'repair_cost' => rand(100, 800),
                 'status' => $statuses[rand(0, count($statuses) - 1)],
                 'user_id' => $users->random()->id,
+                'store_id' => $storeId,
                 'created_at' => Carbon::now()->subDays(rand(0, 20)),
                 'updated_at' => Carbon::now()->subDays(rand(0, 19)),
             ]);

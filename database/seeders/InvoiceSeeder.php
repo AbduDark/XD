@@ -22,9 +22,13 @@ class InvoiceSeeder extends Seeder
             $tax = ($subtotal - $discount) * 0.14; // 14% tax
             $total = $subtotal - $discount + $tax;
 
+            $stores = \App\Models\Store::all();
+            $storeId = $stores->isNotEmpty() ? $stores->random()->id : 1;
+
             $invoice = Invoice::create([
                 'invoice_number' => 'INV-' . date('Y') . '-' . str_pad($i, 6, '0', STR_PAD_LEFT),
                 'user_id' => $users->random()->id,
+                'store_id' => $storeId,
                 'customer_name' => 'عميل رقم ' . $i,
                 'customer_phone' => '01' . rand(100000000, 999999999),
                 'subtotal' => $subtotal,

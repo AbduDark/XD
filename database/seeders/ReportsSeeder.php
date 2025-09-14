@@ -22,8 +22,12 @@ class ReportsSeeder extends Seeder
             $invoicesCount = rand(3, 15);
 
             for ($j = 0; $j < $invoicesCount; $j++) {
+                $stores = \App\Models\Store::all();
+                $storeId = $stores->isNotEmpty() ? $stores->random()->id : 1;
+
                 $invoice = Invoice::create([
                     'user_id' => 1,
+                    'store_id' => $storeId,
                     'customer_name' => 'عميل تجريبي ' . rand(1, 100),
                     'customer_phone' => '0100' . rand(1000000, 9999999),
                     'discount' => rand(0, 50),
