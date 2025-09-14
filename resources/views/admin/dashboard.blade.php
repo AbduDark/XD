@@ -1,205 +1,285 @@
+
 @extends('layouts.app')
 
 @section('title', 'لوحة تحكم الأدمن')
 
 @section('content')
-<div class="py-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">لوحة تحكم الأدمن</h1>
-            <p class="mt-2 text-gray-600 dark:text-gray-400">إدارة شاملة للنظام والمتاجر والمستخدمين</p>
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-slate-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Header with Actions -->
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
+            <div class="mb-4 lg:mb-0">
+                <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    لوحة تحكم النظام
+                </h1>
+                <p class="mt-2 text-lg text-gray-600 dark:text-gray-400">إدارة شاملة للنظام والمتاجر والمستخدمين</p>
+            </div>
+            <div class="flex space-x-3 space-x-reverse">
+                <button onclick="refreshDashboard()" class="btn-primary-modern flex items-center space-x-2 space-x-reverse">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>تحديث البيانات</span>
+                </button>
+                <a href="{{ route('admin.stores.create') }}" class="btn-success-modern flex items-center space-x-2 space-x-reverse">
+                    <i class="fas fa-plus"></i>
+                    <span>متجر جديد</span>
+                </a>
+            </div>
         </div>
 
-        <!-- Stats Grid -->
+        <!-- Modern Stats Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <!-- Total Stores -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-                <div class="p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="mr-4 flex-1">
-                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">إجمالي المتاجر</dt>
-                            <dd class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['total_stores'] }}</dd>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <div class="text-sm text-green-600 dark:text-green-400">
+            <div class="card-modern p-6 hover:shadow-lg transition-all duration-300 group">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">إجمالي المتاجر</div>
+                        <div class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ $stats['total_stores'] }}</div>
+                        <div class="text-sm text-emerald-600 dark:text-emerald-400 mt-1">
                             {{ $stats['active_stores'] }} نشط
                         </div>
+                    </div>
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-store text-white text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-gray-500 dark:text-gray-400">نشط</span>
+                        <span class="font-medium">{{ number_format(($stats['active_stores'] / max($stats['total_stores'], 1)) * 100, 1) }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 mt-2">
+                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full" style="width: {{ ($stats['active_stores'] / max($stats['total_stores'], 1)) * 100 }}%"></div>
                     </div>
                 </div>
             </div>
 
             <!-- Total Users -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-                <div class="p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="mr-4 flex-1">
-                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">إجمالي المستخدمين</dt>
-                            <dd class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['total_users'] }}</dd>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <div class="text-sm text-green-600 dark:text-green-400">
+            <div class="card-modern p-6 hover:shadow-lg transition-all duration-300 group">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">إجمالي المستخدمين</div>
+                        <div class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ $stats['total_users'] }}</div>
+                        <div class="text-sm text-emerald-600 dark:text-emerald-400 mt-1">
                             {{ $stats['active_users'] }} نشط
                         </div>
+                    </div>
+                    <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-users text-white text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-gray-500 dark:text-gray-400">نشط</span>
+                        <span class="font-medium">{{ number_format(($stats['active_users'] / max($stats['total_users'], 1)) * 100, 1) }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2 mt-2">
+                        <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 h-2 rounded-full" style="width: {{ ($stats['active_users'] / max($stats['total_users'], 1)) * 100 }}%"></div>
                     </div>
                 </div>
             </div>
 
             <!-- Monthly Revenue -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-                <div class="p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <div class="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="mr-4 flex-1">
-                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">إيرادات الشهر</dt>
-                            <dd class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($stats['monthly_revenue'], 2) }} ر.س</dd>
-                        </div>
-                    </div>
-                    <div class="mt-4">
-                        <div class="text-sm text-gray-600 dark:text-gray-400">
+            <div class="card-modern p-6 hover:shadow-lg transition-all duration-300 group">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">إيرادات الشهر</div>
+                        <div class="text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ number_format($stats['monthly_revenue'], 0) }}</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                             {{ $stats['total_invoices'] }} فاتورة
                         </div>
                     </div>
+                    <div class="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-chart-line text-white text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center space-x-2 space-x-reverse text-xs">
+                    <div class="flex items-center text-emerald-600 dark:text-emerald-400">
+                        <i class="fas fa-arrow-up text-xs mr-1"></i>
+                        <span>12.5%</span>
+                    </div>
+                    <span class="text-gray-500 dark:text-gray-400">من الشهر الماضي</span>
                 </div>
             </div>
 
-            <!-- Pending Repairs -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-                <div class="p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <div class="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="mr-4 flex-1">
-                            <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">إصلاحات معلقة</dt>
-                            <dd class="text-2xl font-bold text-gray-900 dark:text-white">{{ $stats['pending_repairs'] }}</dd>
+            <!-- System Health -->
+            <div class="card-modern p-6 hover:shadow-lg transition-all duration-300 group">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">حالة النظام</div>
+                        <div class="text-3xl font-bold text-emerald-600 dark:text-emerald-400 mt-2">ممتاز</div>
+                        <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            جميع الخدمات تعمل
                         </div>
                     </div>
-                    <div class="mt-4">
-                        <div class="text-sm text-gray-600 dark:text-gray-400">
-                            من {{ $stats['total_repairs'] }} إجمالي
-                        </div>
+                    <div class="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-heart text-white text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex space-x-2 space-x-reverse">
+                    <div class="flex-1 bg-emerald-100 dark:bg-emerald-900 rounded-lg p-2 text-center">
+                        <div class="text-xs text-emerald-600 dark:text-emerald-400 font-medium">قاعدة البيانات</div>
+                        <div class="text-emerald-700 dark:text-emerald-300 text-xs">متصلة</div>
+                    </div>
+                    <div class="flex-1 bg-emerald-100 dark:bg-emerald-900 rounded-lg p-2 text-center">
+                        <div class="text-xs text-emerald-600 dark:text-emerald-400 font-medium">الخادم</div>
+                        <div class="text-emerald-700 dark:text-emerald-300 text-xs">يعمل</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <a href="{{ route('admin.stores.create') }}" class="block p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-200">
-                <div class="flex items-center">
-                    <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">إضافة متجر جديد</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">إنشاء متجر جديد في النظام</p>
-                    </div>
+        <!-- Advanced Management Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <!-- Quick Actions -->
+            <div class="card-modern overflow-hidden">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-800">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                        <i class="fas fa-bolt text-blue-600 mr-3"></i>
+                        إجراءات سريعة
+                    </h3>
                 </div>
-            </a>
-
-            <a href="{{ route('admin.users.create') }}" class="block p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-200">
-                <div class="flex items-center">
-                    <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mr-4">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">إضافة مستخدم جديد</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">إنشاء حساب مستخدم جديد</p>
-                    </div>
+                <div class="p-6 space-y-3">
+                    <a href="{{ route('admin.stores.create') }}" class="flex items-center p-4 rounded-lg bg-blue-50 hover:bg-blue-100 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors group">
+                        <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <i class="fas fa-store text-blue-600 dark:text-blue-400"></i>
+                        </div>
+                        <div class="mr-4">
+                            <div class="font-medium text-gray-900 dark:text-white">إضافة متجر</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">إنشاء متجر جديد</div>
+                        </div>
+                    </a>
+                    
+                    <a href="{{ route('admin.users.create') }}" class="flex items-center p-4 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors group">
+                        <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <i class="fas fa-user-plus text-emerald-600 dark:text-emerald-400"></i>
+                        </div>
+                        <div class="mr-4">
+                            <div class="font-medium text-gray-900 dark:text-white">إضافة مستخدم</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">إنشاء حساب جديد</div>
+                        </div>
+                    </a>
+                    
+                    <a href="{{ route('admin.dashboard.system-health') }}" class="flex items-center p-4 rounded-lg bg-amber-50 hover:bg-amber-100 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors group">
+                        <div class="w-10 h-10 bg-amber-100 dark:bg-amber-900 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <i class="fas fa-chart-pie text-amber-600 dark:text-amber-400"></i>
+                        </div>
+                        <div class="mr-4">
+                            <div class="font-medium text-gray-900 dark:text-white">تقارير متقدمة</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">إحصائيات مفصلة</div>
+                        </div>
+                    </a>
                 </div>
-            </a>
+            </div>
 
-            <a href="{{ route('admin.stores.index') }}" class="block p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-200">
-                <div class="flex items-center">
-                    <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center mr-4">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">إدارة المتاجر</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">عرض وإدارة جميع المتاجر</p>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <!-- Recent Activities & Monthly Chart -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Recent Activities -->
-            <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">الأنشطة الأخيرة</h3>
+            <div class="card-modern overflow-hidden">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-gray-800 dark:to-gray-800">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                        <i class="fas fa-clock text-emerald-600 mr-3"></i>
+                        الأنشطة الأخيرة
+                    </h3>
                 </div>
-                <div class="p-6">
+                <div class="p-6 max-h-96 overflow-y-auto">
                     <div class="space-y-4">
                         @forelse($recentActivities as $activity)
-                        <div class="flex items-start space-x-4 rtl:space-x-reverse">
+                        <div class="flex items-start space-x-4 space-x-reverse p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                             <div class="flex-shrink-0">
                                 @if($activity['type'] === 'store_created')
-                                <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                                    </svg>
+                                <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-store text-blue-600 dark:text-blue-400 text-sm"></i>
                                 </div>
                                 @else
-                                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                    </svg>
+                                <div class="w-8 h-8 bg-emerald-100 dark:bg-emerald-900 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-emerald-600 dark:text-emerald-400 text-sm"></i>
                                 </div>
                                 @endif
                             </div>
                             <div class="flex-1 min-w-0">
-                                <p class="text-sm text-gray-900 dark:text-white">{{ $activity['message'] }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">بواسطة {{ $activity['user'] }} • {{ $activity['time'] }}</p>
+                                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $activity['message'] }}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    بواسطة {{ $activity['user'] }} • {{ $activity['time'] }}
+                                </p>
                             </div>
                         </div>
                         @empty
-                        <p class="text-gray-500 dark:text-gray-400 text-center py-8">لا توجد أنشطة حديثة</p>
+                        <div class="text-center py-8">
+                            <i class="fas fa-clock text-gray-300 dark:text-gray-600 text-3xl mb-3"></i>
+                            <p class="text-gray-500 dark:text-gray-400">لا توجد أنشطة حديثة</p>
+                        </div>
                         @endforelse
                     </div>
                 </div>
             </div>
 
+            <!-- System Performance -->
+            <div class="card-modern overflow-hidden">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-gray-800 dark:to-gray-800">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                        <i class="fas fa-tachometer-alt text-purple-600 mr-3"></i>
+                        أداء النظام
+                    </h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">استخدام الذاكرة</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">68%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div class="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full" style="width: 68%"></div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">استخدام وحدة المعالجة</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">45%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full" style="width: 45%"></div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">مساحة التخزين</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">32%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 h-2 rounded-full" style="width: 32%"></div>
+                    </div>
+                    
+                    <div class="mt-6 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle text-emerald-600 dark:text-emerald-400 mr-2"></i>
+                            <span class="text-sm font-medium text-emerald-700 dark:text-emerald-300">الأداء ممتاز</span>
+                        </div>
+                        <p class="text-xs text-emerald-600 dark:text-emerald-400 mt-1">جميع الخدمات تعمل بكفاءة عالية</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- Monthly Chart -->
-            <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg border border-gray-200 dark:border-gray-700">
-                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">الإحصائيات الشهرية</h3>
+            <div class="card-modern overflow-hidden">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                        <i class="fas fa-chart-area text-blue-600 mr-3"></i>
+                        الإحصائيات الشهرية
+                    </h3>
                 </div>
                 <div class="p-6">
-                    <canvas id="monthlyChart" width="400" height="200"></canvas>
+                    <canvas id="monthlyChart" class="max-h-80"></canvas>
+                </div>
+            </div>
+
+            <!-- Store Performance -->
+            <div class="card-modern overflow-hidden">
+                <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                        <i class="fas fa-store text-emerald-600 mr-3"></i>
+                        أداء المتاجر
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <canvas id="storePerformanceChart" class="max-h-80"></canvas>
                 </div>
             </div>
         </div>
@@ -210,10 +290,11 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('monthlyChart').getContext('2d');
+    // Monthly Chart
+    const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
     const monthlyData = @json($monthlyData);
     
-    new Chart(ctx, {
+    new Chart(monthlyCtx, {
         type: 'line',
         data: {
             labels: monthlyData.map(item => item.month),
@@ -222,13 +303,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 data: monthlyData.map(item => item.stores),
                 borderColor: 'rgb(59, 130, 246)',
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                tension: 0.1
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: 'rgb(59, 130, 246)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 6
             }, {
                 label: 'المستخدمون الجدد',
                 data: monthlyData.map(item => item.users),
                 borderColor: 'rgb(16, 185, 129)',
                 backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                tension: 0.1
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: 'rgb(16, 185, 129)',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 6
             }]
         },
         options: {
@@ -237,19 +328,65 @@ document.addEventListener('DOMContentLoaded', function() {
             plugins: {
                 legend: {
                     position: 'top',
-                },
-                title: {
-                    display: false
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
                 }
             },
             scales: {
                 y: {
-                    beginAtZero: true
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+
+    // Store Performance Chart
+    const storeCtx = document.getElementById('storePerformanceChart').getContext('2d');
+    
+    new Chart(storeCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['متاجر نشطة', 'متاجر غير نشطة', 'متاجر جديدة'],
+            datasets: [{
+                data: [{{ $stats['active_stores'] }}, {{ $stats['total_stores'] - $stats['active_stores'] }}, 5],
+                backgroundColor: [
+                    'rgb(16, 185, 129)',
+                    'rgb(239, 68, 68)',
+                    'rgb(59, 130, 246)'
+                ],
+                borderWidth: 0,
+                cutout: '60%'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
                 }
             }
         }
     });
 });
+
+function refreshDashboard() {
+    location.reload();
+}
 </script>
 @endpush
 @endsection

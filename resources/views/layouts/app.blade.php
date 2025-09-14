@@ -34,34 +34,53 @@
 
                         <!-- Navigation Links -->
                         <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                            <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                                <i class="fas fa-tachometer-alt ml-2"></i>
-                                لوحة التحكم
-                            </a>
-                            <a href="{{ route('products.index') }}" class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}">
-                                <i class="fas fa-box ml-2"></i>
-                                المنتجات
-                            </a>
-                            <a href="{{ route('invoices.index') }}" class="nav-link {{ request()->routeIs('invoices.*') ? 'active' : '' }}">
-                                <i class="fas fa-file-invoice ml-2"></i>
-                                الفواتير
-                            </a>
-                            <a href="{{ route('returns.index') }}" class="nav-link {{ request()->routeIs('returns.*') ? 'active' : '' }}">
-                                <i class="fas fa-undo ml-2"></i>
-                                المرتجعات
-                            </a>
-                            <a href="{{ route('repairs.index') }}" class="nav-link {{ request()->routeIs('repairs.*') ? 'active' : '' }}">
-                                <i class="fas fa-tools ml-2"></i>
-                                الصيانة
-                            </a>
-                            <a href="{{ route('cash-transfers.index') }}" class="nav-link {{ request()->routeIs('cash-transfers.*') ? 'active' : '' }}">
-                                <i class="fas fa-exchange-alt ml-2"></i>
-                                التحويلات
-                            </a>
-                            <a href="{{ route('reports.index') }}" class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
-                                <i class="fas fa-chart-bar ml-2"></i>
-                                التقارير
-                            </a>
+                            @if(auth()->user()->isSuperAdmin())
+                                <a href="{{ route('admin.dashboard') }}" class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
+                                    <i class="fas fa-crown ml-2"></i>
+                                    لوحة الأدمن
+                                </a>
+                                <a href="{{ route('admin.stores.index') }}" class="nav-link {{ request()->routeIs('admin.stores.*') ? 'active' : '' }}">
+                                    <i class="fas fa-store ml-2"></i>
+                                    المتاجر
+                                </a>
+                                <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                                    <i class="fas fa-users ml-2"></i>
+                                    المستخدمون
+                                </a>
+                                <a href="{{ route('admin.reports.index') }}" class="nav-link {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+                                    <i class="fas fa-chart-line ml-2"></i>
+                                    التقارير المتقدمة
+                                </a>
+                            @else
+                                <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                                    <i class="fas fa-tachometer-alt ml-2"></i>
+                                    لوحة التحكم
+                                </a>
+                                <a href="{{ route('products.index') }}" class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}">
+                                    <i class="fas fa-box ml-2"></i>
+                                    المنتجات
+                                </a>
+                                <a href="{{ route('invoices.index') }}" class="nav-link {{ request()->routeIs('invoices.*') ? 'active' : '' }}">
+                                    <i class="fas fa-file-invoice ml-2"></i>
+                                    الفواتير
+                                </a>
+                                <a href="{{ route('returns.index') }}" class="nav-link {{ request()->routeIs('returns.*') ? 'active' : '' }}">
+                                    <i class="fas fa-undo ml-2"></i>
+                                    المرتجعات
+                                </a>
+                                <a href="{{ route('repairs.index') }}" class="nav-link {{ request()->routeIs('repairs.*') ? 'active' : '' }}">
+                                    <i class="fas fa-tools ml-2"></i>
+                                    الصيانة
+                                </a>
+                                <a href="{{ route('cash-transfers.index') }}" class="nav-link {{ request()->routeIs('cash-transfers.*') ? 'active' : '' }}">
+                                    <i class="fas fa-exchange-alt ml-2"></i>
+                                    التحويلات
+                                </a>
+                                <a href="{{ route('reports.index') }}" class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
+                                    <i class="fas fa-chart-bar ml-2"></i>
+                                    التقارير
+                                </a>
+                            @endif
                         </div>
                     </div>
 

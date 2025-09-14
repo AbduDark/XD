@@ -77,6 +77,66 @@ class Store extends Model
             if (empty($store->slug)) {
                 $store->slug = Str::slug($store->name);
             }
+            
+            // Set default settings
+            if (empty($store->settings)) {
+                $store->settings = [
+                    'business' => [
+                        'tax_rate' => 15.0,
+                        'currency' => 'SAR',
+                        'timezone' => 'Asia/Riyadh',
+                        'working_hours' => []
+                    ],
+                    'notifications' => [
+                        'low_stock_alert' => true,
+                        'low_stock_threshold' => 5,
+                        'email_notifications' => true,
+                        'sms_notifications' => false,
+                        'reports' => [
+                            'daily' => true,
+                            'weekly' => false,
+                            'monthly' => true
+                        ]
+                    ],
+                    'permissions' => [
+                        'products' => [
+                            'view' => true,
+                            'create' => true,
+                            'edit' => true,
+                            'delete' => false,
+                            'import' => true,
+                            'export' => true
+                        ],
+                        'invoices' => [
+                            'view' => true,
+                            'create' => true,
+                            'edit' => true,
+                            'delete' => false,
+                            'print' => true
+                        ],
+                        'reports' => [
+                            'daily' => true,
+                            'monthly' => true,
+                            'inventory' => true,
+                            'sales' => true,
+                            'financial' => false
+                        ],
+                        'users' => [
+                            'view' => false,
+                            'create' => false,
+                            'edit' => false,
+                            'delete' => false
+                        ]
+                    ],
+                    'security' => [
+                        'enable_two_factor' => false,
+                        'session_timeout' => 480,
+                        'allowed_ips' => [],
+                        'backup_frequency' => 'weekly',
+                        'audit_logs' => true
+                    ]
+                ];
+            }
         });
     }
 

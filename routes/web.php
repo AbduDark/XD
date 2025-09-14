@@ -77,6 +77,28 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/dashboard/stores-analytics', [AdminDashboardController::class, 'storesAnalytics'])->name('dashboard.stores-analytics');
         Route::get('/dashboard/system-health', [AdminDashboardController::class, 'systemHealth'])->name('dashboard.system-health');
         
+        // Store Settings
+        Route::get('/stores/{store}/settings', [App\Http\Controllers\Admin\StoreSettingsController::class, 'index'])->name('stores.settings');
+        Route::post('/stores/{store}/basic-settings', [App\Http\Controllers\Admin\StoreSettingsController::class, 'updateBasicSettings'])->name('stores.basic-settings');
+        Route::post('/stores/{store}/business-settings', [App\Http\Controllers\Admin\StoreSettingsController::class, 'updateBusinessSettings'])->name('stores.business-settings');
+        Route::post('/stores/{store}/notification-settings', [App\Http\Controllers\Admin\StoreSettingsController::class, 'updateNotificationSettings'])->name('stores.notification-settings');
+        Route::post('/stores/{store}/security-settings', [App\Http\Controllers\Admin\StoreSettingsController::class, 'updateSecuritySettings'])->name('stores.security-settings');
+        Route::post('/stores/{store}/logo', [App\Http\Controllers\Admin\StoreSettingsController::class, 'updateLogo'])->name('stores.logo');
+        Route::get('/stores/{store}/permissions', [App\Http\Controllers\Admin\StoreSettingsController::class, 'getPermissions'])->name('stores.permissions');
+        Route::post('/stores/{store}/permissions', [App\Http\Controllers\Admin\StoreSettingsController::class, 'updatePermissions'])->name('stores.update-permissions');
+        Route::post('/stores/{store}/reset-settings', [App\Http\Controllers\Admin\StoreSettingsController::class, 'resetSettings'])->name('stores.reset-settings');
+        
+        // Advanced Reports
+        Route::prefix('reports')->name('reports.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\AdvancedReportsController::class, 'index'])->name('index');
+            Route::get('/store-performance', [App\Http\Controllers\Admin\AdvancedReportsController::class, 'storePerformance'])->name('store-performance');
+            Route::get('/system-analytics', [App\Http\Controllers\Admin\AdvancedReportsController::class, 'systemAnalytics'])->name('system-analytics');
+            Route::get('/financial-summary', [App\Http\Controllers\Admin\AdvancedReportsController::class, 'financialSummary'])->name('financial-summary');
+            Route::get('/user-engagement', [App\Http\Controllers\Admin\AdvancedReportsController::class, 'userEngagement'])->name('user-engagement');
+            Route::get('/inventory-analysis', [App\Http\Controllers\Admin\AdvancedReportsController::class, 'inventoryAnalysis'])->name('inventory-analysis');
+            Route::post('/export', [App\Http\Controllers\Admin\AdvancedReportsController::class, 'exportReport'])->name('export');
+        });
+        
         // Store Management
         Route::resource('stores', StoreManagementController::class);
         Route::patch('/stores/{store}/toggle-status', [StoreManagementController::class, 'toggleStatus'])->name('stores.toggle-status');
