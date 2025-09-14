@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\Invoice;
 use App\Models\Repair;
-use App\Models\ReturnItem;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 

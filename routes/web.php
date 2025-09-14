@@ -17,7 +17,8 @@ use App\Http\Controllers\Admin\UserManagementController;
 
 Route::get('/', function () {
     if (auth()->check()) {
-        if (auth()->user()->isSuperAdmin()) {
+        $user = auth()->user();
+        if ($user->role === 'super_admin') {
             return redirect()->route('admin.dashboard');
         }
         return redirect()->route('dashboard');
