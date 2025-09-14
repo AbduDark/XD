@@ -1,4 +1,3 @@
-
 <?php
 
 namespace Database\Seeders;
@@ -18,10 +17,10 @@ class ReportsSeeder extends Seeder
         // إضافة بيانات مبيعات لآخر 30 يوم
         for ($i = 0; $i < 30; $i++) {
             $date = Carbon::now()->subDays($i);
-            
+
             // عدد عشوائي من الفواتير لكل يوم
             $invoicesCount = rand(3, 15);
-            
+
             for ($j = 0; $j < $invoicesCount; $j++) {
                 $invoice = Invoice::create([
                     'user_id' => 1,
@@ -41,7 +40,7 @@ class ReportsSeeder extends Seeder
                     $quantity = rand(1, 5);
                     $price = $product->selling_price;
                     $totalPrice = $quantity * $price;
-                    
+
                     InvoiceItem::create([
                         'invoice_id' => $invoice->id,
                         'product_id' => $product->id,
@@ -51,7 +50,7 @@ class ReportsSeeder extends Seeder
                     ]);
 
                     $invoiceTotal += $totalPrice;
-                    
+
                     // تقليل كمية المنتج
                     $product->decrement('quantity', $quantity);
                 }
