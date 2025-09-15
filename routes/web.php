@@ -105,7 +105,7 @@ Route::middleware(['auth', 'store.resolve'])->group(function () {
             Route::get('/financial-summary', [App\Http\Controllers\Admin\AdvancedReportsController::class, 'financialSummary'])->name('financial-summary');
             Route::get('/user-engagement', [App\Http\Controllers\Admin\AdvancedReportsController::class, 'userEngagement'])->name('user-engagement');
             Route::get('/inventory-analysis', [App\Http\Controllers\Admin\AdvancedReportsController::class, 'inventoryAnalysis'])->name('inventory-analysis');
-            Route::post('/export', [App\Http\Controllers\Admin\AdvancedReportsController::class, 'exportReport'])->name('export');
+            Route::get('/export', [App\Http\Controllers\Admin\AdvancedReportsController::class, 'exportReport'])->name('export');
         });
 
         // Store Management
