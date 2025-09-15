@@ -1,4 +1,3 @@
-
 <?php
 
 namespace App\Http\Middleware;
@@ -16,7 +15,7 @@ class ResolveCurrentStore
     {
         if (Auth::check()) {
             $user = Auth::user();
-            
+
             // Super admins don't need a specific store resolution
             if ($user->isSuperAdmin()) {
                 return $next($request);
@@ -26,7 +25,7 @@ class ResolveCurrentStore
             $storeId = $request->route('store');
             if ($storeId) {
                 $store = is_numeric($storeId) ? Store::find($storeId) : Store::where('slug', $storeId)->first();
-                
+
                 if ($store && $user->canAccessStore($store->id)) {
                     session(['current_store_id' => $store->id]);
                     view()->share('currentStore', $store);
@@ -37,7 +36,7 @@ class ResolveCurrentStore
 
             // Get or create user's store
             $currentStore = $user->ownedStores()->where('is_active', true)->first();
-            
+
             if (!$currentStore) {
                 // Create a default store for the user if they don't have one
                 $currentStore = Store::create([
@@ -50,7 +49,7 @@ class ResolveCurrentStore
                     'currency' => 'SAR'
                 ]);
             }
-            
+
             if ($currentStore) {
                 session(['current_store_id' => $currentStore->id]);
                 view()->share('currentStore', $currentStore);

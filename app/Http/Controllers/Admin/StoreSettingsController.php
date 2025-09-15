@@ -1,4 +1,3 @@
-
 <?php
 
 namespace App\Http\Controllers\Admin;
@@ -15,7 +14,7 @@ class StoreSettingsController extends Controller
     public function index(Store $store)
     {
         $store->load(['owner', 'users']);
-        
+
         return view('admin.store-settings.index', compact('store'));
     }
 
@@ -57,7 +56,7 @@ class StoreSettingsController extends Controller
         ]);
 
         $settings = $store->settings ?? [];
-        
+
         $settings['business'] = [
             'tax_rate' => $request->tax_rate,
             'currency' => $request->currency ?? 'SAR',
@@ -90,7 +89,7 @@ class StoreSettingsController extends Controller
         ]);
 
         $settings = $store->settings ?? [];
-        
+
         $settings['notifications'] = [
             'low_stock_alert' => $request->boolean('low_stock_alert'),
             'low_stock_threshold' => $request->low_stock_threshold ?? 5,
@@ -122,7 +121,7 @@ class StoreSettingsController extends Controller
         ]);
 
         $settings = $store->settings ?? [];
-        
+
         $settings['security'] = [
             'enable_two_factor' => $request->boolean('enable_two_factor'),
             'session_timeout' => $request->session_timeout ?? 480,
@@ -151,7 +150,7 @@ class StoreSettingsController extends Controller
         }
 
         $logoPath = $request->file('logo')->store('store-logos', 'public');
-        
+
         $store->update(['logo' => $logoPath]);
 
         return response()->json([

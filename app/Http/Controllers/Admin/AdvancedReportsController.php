@@ -1,4 +1,3 @@
-
 <?php
 
 namespace App\Http\Controllers\Admin;
@@ -50,8 +49,8 @@ class AdvancedReportsController extends Controller
                                      ->whereYear('created_at', $previousMonth->year)
                                      ->sum('total');
 
-        $revenueGrowth = $previousMonthRevenue > 0 
-            ? (($currentMonthRevenue - $previousMonthRevenue) / $previousMonthRevenue) * 100 
+        $revenueGrowth = $previousMonthRevenue > 0
+            ? (($currentMonthRevenue - $previousMonthRevenue) / $previousMonthRevenue) * 100
             : 0;
 
         return [
@@ -77,7 +76,7 @@ class AdvancedReportsController extends Controller
                    ->map(function ($store) {
                        $revenue = $store->invoices()->sum('total');
                        $avgOrderValue = $store->invoices_count > 0 ? $revenue / $store->invoices_count : 0;
-                       
+
                        return [
                            'id' => $store->id,
                            'name' => $store->name,
@@ -145,7 +144,7 @@ class AdvancedReportsController extends Controller
     private function exportStorePerformance()
     {
         $data = $this->getStorePerformance();
-        
+
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="store_performance_' . date('Y-m-d') . '.csv"',
@@ -153,11 +152,11 @@ class AdvancedReportsController extends Controller
 
         $callback = function() use ($data) {
             $file = fopen('php://output', 'w');
-            
+
             // CSV Headers
             fputcsv($file, [
-                'ID', 'Store Name', 'Owner', 'Products Count', 
-                'Invoices Count', 'Repairs Count', 'Total Revenue', 
+                'ID', 'Store Name', 'Owner', 'Products Count',
+                'Invoices Count', 'Repairs Count', 'Total Revenue',
                 'Average Order Value', 'Status', 'Created At'
             ]);
 
@@ -175,7 +174,7 @@ class AdvancedReportsController extends Controller
                     $row['created_at']
                 ]);
             }
-            
+
             fclose($file);
         };
 
@@ -185,7 +184,7 @@ class AdvancedReportsController extends Controller
     private function exportFinancialSummary()
     {
         $data = $this->getFinancialSummary();
-        
+
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="financial_summary_' . date('Y-m-d') . '.csv"',
@@ -193,14 +192,14 @@ class AdvancedReportsController extends Controller
 
         $callback = function() use ($data) {
             $file = fopen('php://output', 'w');
-            
+
             // CSV Headers
             fputcsv($file, ['Metric', 'Value']);
 
             foreach ($data as $key => $value) {
                 fputcsv($file, [ucfirst(str_replace('_', ' ', $key)), $value]);
             }
-            
+
             fclose($file);
         };
 
@@ -210,7 +209,7 @@ class AdvancedReportsController extends Controller
     private function exportSystemAnalytics()
     {
         $data = $this->getSystemMetrics();
-        
+
         $headers = [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="system_analytics_' . date('Y-m-d') . '.csv"',
@@ -218,14 +217,14 @@ class AdvancedReportsController extends Controller
 
         $callback = function() use ($data) {
             $file = fopen('php://output', 'w');
-            
+
             // CSV Headers
             fputcsv($file, ['Metric', 'Value']);
 
             foreach ($data as $key => $value) {
                 fputcsv($file, [ucfirst(str_replace('_', ' ', $key)), $value]);
             }
-            
+
             fclose($file);
         };
 

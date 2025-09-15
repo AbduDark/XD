@@ -8,6 +8,7 @@ use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Facades\Hash;
 
 class UserManagementController extends Controller
 {

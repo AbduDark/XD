@@ -1,4 +1,3 @@
-
 <?php
 
 namespace App\Http\Middleware;
@@ -31,7 +30,7 @@ class CheckStoreAccess
         $storeSlug = $request->route('store');
         if ($storeSlug) {
             $store = Store::where('slug', $storeSlug)->first();
-            
+
             if (!$store) {
                 abort(404, 'المتجر غير موجود');
             }
