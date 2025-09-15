@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Models\Store;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+
 
 class CheckStoreAccess
 {

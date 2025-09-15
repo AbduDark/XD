@@ -1,4 +1,3 @@
-
 <?php
 
 namespace Database\Seeders;
@@ -9,6 +8,8 @@ use App\Models\Store;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class DemoDataSeeder extends Seeder
 {
@@ -54,7 +55,7 @@ class DemoDataSeeder extends Seeder
             $store = Store::create([
                 'name' => $userData['store_name'],
                 'name_ar' => $userData['store_name_ar'],
-                'slug' => \Str::slug($userData['store_name'] . '-' . $user->id),
+                'slug' => Str::slug($userData['store_name'] . '-' . $user->id),
                 'owner_id' => $user->id,
                 'is_active' => true,
                 'tax_rate' => 15.0,
