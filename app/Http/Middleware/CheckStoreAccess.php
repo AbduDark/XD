@@ -43,51 +43,22 @@ class CheckStoreAccess
 
             // Check specific permission if provided
             if ($permission && !$this->hasPermission($user, $store, $permission)) {
-                abort(403, 'ليس لديك صلاحية لهذا الإجراء');
+                abort(403, 'ليس لديك الصلاحية المطلوبة');
             }
 
-            // Set the store context
-            session(['current_store_id' => $store->id]);
-            view()->share('currentStore', $store);
-            app()->instance('currentStore', $store);
-        } else {
-            // For routes without store parameter, ensure user has at least one store
-            $currentStore = $user->currentStore();
-            if (!$currentStore) {
-                abort(403, 'ليس لديك صلاحية للوصول لأي متجر');
-            }
-
-            // Check permission for current store
-            if ($permission && !$this->hasPermission($user, $currentStore, $permission)) {
-                abort(403, 'ليس لديك صلاحية لهذا الإجراء');
-            }
+            return $next($request);
         }
 
         return $next($request);
     }
 
     /**
-     * Check if user has specific permission for a store
+     * Check if user has specific permission for store
      */
-    private function hasPermission($user, $store, $permission)
+    private function hasPermission($user, $store, $permission): bool
     {
-        // Store owner has all permissions
-        if ($store->owner_id === $user->id) {
-            return true;
-        }
-
-        // Check store-specific permissions
-        $settings = $store->settings ?? [];
-        $permissions = $settings['permissions'] ?? [];
-
-        // Parse permission string (e.g., 'products.create', 'reports.view')
-        $parts = explode('.', $permission);
-        if (count($parts) !== 2) {
-            return false;
-        }
-
-        [$module, $action] = $parts;
-
-        return $permissions[$module][$action] ?? false;
+        // For now, if user can access store, they have all permissions
+        // You can implement more granular permissions here
+        return $user->canAccessStore($store->id);
     }
 }

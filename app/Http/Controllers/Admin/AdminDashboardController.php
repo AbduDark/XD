@@ -14,17 +14,14 @@ use Carbon\Carbon;
 
 class AdminDashboardController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(['auth', 'role:super_admin']);
-    }
+    // Middleware is handled in routes/web.php
 
     public function index()
     {
         $stats = $this->getSystemStats();
         $recentActivities = $this->getRecentActivities();
         $monthlyData = $this->getMonthlyData();
-        
+
         return view('admin.dashboard', compact('stats', 'recentActivities', 'monthlyData'));
     }
 
@@ -97,7 +94,7 @@ class AdminDashboardController extends Controller
                                   ->sum('total'),
             ]);
         }
-        
+
         return $months;
     }
 

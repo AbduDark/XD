@@ -48,14 +48,41 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user is a super admin
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === 'super_admin';
+    }
 
     /**
-     * Check if user can access specific store
+     * Check if user can access a specific store
      */
+    public function canAccessStore(int $storeId): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        return $this->ownedStores()->where('id', $storeId)->exists() ||
+               $this->stores()->where('store_id', $storeId)->exists();
+    }
 
     /**
-     * Get user's stores relationship
+     * Get stores owned by this user
      */
+    public function ownedStores()
+    {
+        return $this->hasMany(Store::class, 'owner_id');
+    }
+
+    /**
+     * Get stores this user has access to (many-to-many relationship)
+     */
+    public function stores()
+    {
+        return $this->belongsToMany(Store::class, 'store_users')->withPivot('role', 'is_active')->withTimestamps();
+    }
 
     public function invoices()
     {
@@ -77,43 +104,8 @@ class User extends Authenticatable
         return $this->hasMany(ReturnItem::class);
     }
 
-    public function ownedStores()
-    {
-        return $this->hasMany(Store::class, 'owner_id');
-    }
-
-    public function stores()
-    {
-        return $this->belongsToMany(Store::class, 'store_users')->withPivot('role', 'is_active')->withTimestamps();
-    }
-
-    public function currentStore()
-    {
-        return $this->stores()->wherePivot('is_active', true)->first() ?? $this->ownedStores()->where('is_active', true)->first();
-    }
-
-    public function isSuperAdmin()
-    {
-        return $this->role === 'super_admin';
-    }
-
-    public function isAdmin()
-    {
-        return $this->role === 'admin';
-    }
-
     public function isEmployee()
     {
         return $this->role === 'employee';
-    }
-
-    public function canAccessStore($storeId)
-    {
-        if ($this->isSuperAdmin()) {
-            return true;
-        }
-
-        return $this->ownedStores()->where('id', $storeId)->exists()
-            || $this->stores()->wherePivot('is_active', true)->where('stores.id', $storeId)->exists();
     }
 }
