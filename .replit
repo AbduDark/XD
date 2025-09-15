@@ -39,7 +39,9 @@ waitForPort = 5000
 outputType = "webview"
 
 [deployment]
-run = ["sh", "-c", "npm run dev"]
+run = ["php", "artisan", "serve", "--host=0.0.0.0", "--port=5000"]
+deploymentTarget = "autoscale"
+build = ["npm", "run", "build"]
 
 [[ports]]
 localPort = 5000
