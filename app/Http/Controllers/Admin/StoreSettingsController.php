@@ -10,10 +10,7 @@ use Illuminate\Support\Facades\Storage;
 
 class StoreSettingsController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(['auth', 'role:super_admin']);
-    }
+    // Middleware is handled in routes/web.php
 
     public function index(Store $store)
     {

@@ -6,14 +6,12 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class InvoiceController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(['auth', 'store.access']);
-    }
+    // Middleware is handled in routes/web.php
     public function index(Request $request)
     {
         $query = Invoice::with('items.product')->latest();

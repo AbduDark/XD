@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CashTransfer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CashTransferController extends Controller
 {

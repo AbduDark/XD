@@ -8,10 +8,7 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(['auth', 'store.access']);
-    }
+    // Middleware is handled in routes/web.php
     public function apiIndex()
     {
         $products = Product::select('id', 'name', 'price', 'quantity')

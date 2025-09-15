@@ -9,467 +9,226 @@ use App\Models\User;
 use App\Models\Product;
 use App\Models\Invoice;
 use App\Models\Repair;
+use App\Models\CashTransfer;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Response;
+use Carbon\Carbon;
 
 class AdvancedReportsController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(['auth', 'role:super_admin']);
-    }
+    // Middleware is handled in routes/web.php
 
     public function index()
     {
-        return view('admin.reports.index');
+        $systemMetrics = $this->getSystemMetrics();
+        $storePerformance = $this->getStorePerformance();
+        $financialSummary = $this->getFinancialSummary();
+
+        return view('admin.reports.advanced', compact(
+            'systemMetrics',
+            'storePerformance',
+            'financialSummary'
+        ));
     }
 
-    public function storePerformance(Request $request)
+    public function getSystemMetrics()
     {
-        $dateFrom = $request->date_from ? Carbon::parse($request->date_from) : Carbon::now()->startOfMonth();
-        $dateTo = $request->date_to ? Carbon::parse($request->date_to) : Carbon::now()->endOfMonth();
+        $totalStores = Store::count();
+        $activeStores = Store::where('is_active', true)->count();
+        $totalUsers = User::count();
+        $activeUsers = User::where('is_active', true)->count();
 
-        $stores = Store::with(['owner', 'users'])
-            ->withCount(['products', 'invoices', 'repairs'])
-            ->get()
-            ->map(function ($store) use ($dateFrom, $dateTo) {
-                $revenue = $store->invoices()
-                    ->whereBetween('created_at', [$dateFrom, $dateTo])
-                    ->sum('total');
-                
-                $profitData = $this->calculateStoreProfit($store->id, $dateFrom, $dateTo);
-                
-                return [
-                    'id' => $store->id,
-                    'name' => $store->name,
-                    'owner' => $store->owner->name,
-                    'products_count' => $store->products_count,
-                    'invoices_count' => $store->invoices_count,
-                    'repairs_count' => $store->repairs_count,
-                    'revenue' => $revenue,
-                    'profit' => $profitData['profit'],
-                    'profit_margin' => $profitData['margin'],
-                    'active_users' => $store->users()->wherePivot('is_active', true)->count(),
-                    'growth_rate' => $this->calculateGrowthRate($store->id, $dateFrom, $dateTo),
-                    'status' => $store->is_active ? 'نشط' : 'غير نشط',
-                    'last_activity' => $store->invoices()->latest()->first()?->created_at,
-                ];
-            });
+        $currentMonth = Carbon::now();
+        $previousMonth = Carbon::now()->subMonth();
 
-        return view('admin.reports.store-performance', compact('stores', 'dateFrom', 'dateTo'));
-    }
+        $currentMonthRevenue = Invoice::whereMonth('created_at', $currentMonth->month)
+                                    ->whereYear('created_at', $currentMonth->year)
+                                    ->sum('total');
 
-    public function systemAnalytics()
-    {
-        $analytics = [
-            'overview' => $this->getSystemOverview(),
-            'performance' => $this->getPerformanceMetrics(),
-            'user_activity' => $this->getUserActivityMetrics(),
-            'sales_trends' => $this->getSalesTrends(),
-            'top_performers' => $this->getTopPerformers(),
+        $previousMonthRevenue = Invoice::whereMonth('created_at', $previousMonth->month)
+                                     ->whereYear('created_at', $previousMonth->year)
+                                     ->sum('total');
+
+        $revenueGrowth = $previousMonthRevenue > 0 
+            ? (($currentMonthRevenue - $previousMonthRevenue) / $previousMonthRevenue) * 100 
+            : 0;
+
+        return [
+            'total_stores' => $totalStores,
+            'active_stores' => $activeStores,
+            'store_activity_rate' => $totalStores > 0 ? round(($activeStores / $totalStores) * 100, 2) : 0,
+            'total_users' => $totalUsers,
+            'active_users' => $activeUsers,
+            'user_activity_rate' => $totalUsers > 0 ? round(($activeUsers / $totalUsers) * 100, 2) : 0,
+            'current_month_revenue' => $currentMonthRevenue,
+            'previous_month_revenue' => $previousMonthRevenue,
+            'revenue_growth' => round($revenueGrowth, 2),
+            'total_products' => Product::count(),
+            'pending_repairs' => Repair::where('status', 'pending')->count(),
         ];
-
-        return view('admin.reports.system-analytics', compact('analytics'));
     }
 
-    public function financialSummary(Request $request)
+    public function getStorePerformance()
     {
-        $dateFrom = $request->date_from ? Carbon::parse($request->date_from) : Carbon::now()->startOfYear();
-        $dateTo = $request->date_to ? Carbon::parse($request->date_to) : Carbon::now()->endOfYear();
-
-        $summary = [
-            'total_revenue' => $this->getTotalRevenue($dateFrom, $dateTo),
-            'total_profit' => $this->getTotalProfit($dateFrom, $dateTo),
-            'store_breakdown' => $this->getStoreRevenueBreakdown($dateFrom, $dateTo),
-            'monthly_trends' => $this->getMonthlyFinancialTrends($dateFrom, $dateTo),
-            'expense_categories' => $this->getExpenseCategories($dateFrom, $dateTo),
-            'roi_metrics' => $this->getROIMetrics($dateFrom, $dateTo),
-        ];
-
-        return view('admin.reports.financial-summary', compact('summary', 'dateFrom', 'dateTo'));
+        return Store::withCount(['products', 'invoices', 'repairs'])
+                   ->with('owner')
+                   ->get()
+                   ->map(function ($store) {
+                       $revenue = $store->invoices()->sum('total');
+                       $avgOrderValue = $store->invoices_count > 0 ? $revenue / $store->invoices_count : 0;
+                       
+                       return [
+                           'id' => $store->id,
+                           'name' => $store->name,
+                           'owner' => $store->owner->name,
+                           'products_count' => $store->products_count,
+                           'invoices_count' => $store->invoices_count,
+                           'repairs_count' => $store->repairs_count,
+                           'total_revenue' => $revenue,
+                           'avg_order_value' => round($avgOrderValue, 2),
+                           'status' => $store->is_active ? 'نشط' : 'غير نشط',
+                           'created_at' => $store->created_at->format('Y-m-d'),
+                       ];
+                   });
     }
 
-    public function userEngagement()
+    public function getFinancialSummary()
     {
-        $engagement = [
-            'active_users' => $this->getActiveUsersMetrics(),
-            'login_patterns' => $this->getLoginPatterns(),
-            'feature_usage' => $this->getFeatureUsage(),
-            'user_retention' => $this->getUserRetention(),
-            'geographic_distribution' => $this->getGeographicDistribution(),
+        $today = Carbon::today();
+        $thisMonth = Carbon::now()->startOfMonth();
+        $thisYear = Carbon::now()->startOfYear();
+
+        $dailyRevenue = Invoice::whereDate('created_at', $today)->sum('total');
+        $monthlyRevenue = Invoice::where('created_at', '>=', $thisMonth)->sum('total');
+        $yearlyRevenue = Invoice::where('created_at', '>=', $thisYear)->sum('total');
+
+        $dailyOrders = Invoice::whereDate('created_at', $today)->count();
+        $monthlyOrders = Invoice::where('created_at', '>=', $thisMonth)->count();
+        $yearlyOrders = Invoice::where('created_at', '>=', $thisYear)->count();
+
+        $totalCashIn = CashTransfer::where('type', 'in')->sum('amount');
+        $totalCashOut = CashTransfer::where('type', 'out')->sum('amount');
+        $netCashFlow = $totalCashIn - $totalCashOut;
+
+        return [
+            'daily_revenue' => $dailyRevenue,
+            'monthly_revenue' => $monthlyRevenue,
+            'yearly_revenue' => $yearlyRevenue,
+            'daily_orders' => $dailyOrders,
+            'monthly_orders' => $monthlyOrders,
+            'yearly_orders' => $yearlyOrders,
+            'total_cash_in' => $totalCashIn,
+            'total_cash_out' => $totalCashOut,
+            'net_cash_flow' => $netCashFlow,
+            'avg_daily_revenue' => $dailyOrders > 0 ? $dailyRevenue / $dailyOrders : 0,
+            'avg_monthly_revenue' => $monthlyOrders > 0 ? $monthlyRevenue / $monthlyOrders : 0,
         ];
-
-        return view('admin.reports.user-engagement', compact('engagement'));
-    }
-
-    public function inventoryAnalysis()
-    {
-        $analysis = [
-            'stock_levels' => $this->getStockLevels(),
-            'turnover_rates' => $this->getInventoryTurnover(),
-            'slow_moving' => $this->getSlowMovingItems(),
-            'fast_moving' => $this->getFastMovingItems(),
-            'stock_value' => $this->getStockValueAnalysis(),
-            'reorder_alerts' => $this->getReorderAlerts(),
-        ];
-
-        return view('admin.reports.inventory-analysis', compact('analysis'));
     }
 
     public function exportReport(Request $request)
     {
-        $reportType = $request->report_type;
-        $format = $request->format; // pdf, excel, csv
-        
-        switch ($reportType) {
+        $type = $request->get('type', 'store_performance');
+
+        switch ($type) {
             case 'store_performance':
-                return $this->exportStorePerformance($format, $request);
+                return $this->exportStorePerformance();
             case 'financial_summary':
-                return $this->exportFinancialSummary($format, $request);
+                return $this->exportFinancialSummary();
             case 'system_analytics':
-                return $this->exportSystemAnalytics($format, $request);
+                return $this->exportSystemAnalytics();
             default:
-                return response()->json(['error' => 'Invalid report type'], 400);
+                return redirect()->back()->with('error', 'نوع التقرير غير صحيح');
         }
     }
 
-    // Helper methods
-    private function calculateStoreProfit($storeId, $dateFrom, $dateTo)
+    private function exportStorePerformance()
     {
-        $invoices = Invoice::where('store_id', $storeId)
-            ->whereBetween('created_at', [$dateFrom, $dateTo])
-            ->with('items.product')
-            ->get();
+        $data = $this->getStorePerformance();
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="store_performance_' . date('Y-m-d') . '.csv"',
+        ];
 
-        $totalRevenue = $invoices->sum('total');
-        $totalCost = 0;
+        $callback = function() use ($data) {
+            $file = fopen('php://output', 'w');
+            
+            // CSV Headers
+            fputcsv($file, [
+                'ID', 'Store Name', 'Owner', 'Products Count', 
+                'Invoices Count', 'Repairs Count', 'Total Revenue', 
+                'Average Order Value', 'Status', 'Created At'
+            ]);
 
-        foreach ($invoices as $invoice) {
-            foreach ($invoice->items as $item) {
-                if ($item->product) {
-                    $totalCost += $item->quantity * $item->product->purchase_price;
-                }
+            foreach ($data as $row) {
+                fputcsv($file, [
+                    $row['id'],
+                    $row['name'],
+                    $row['owner'],
+                    $row['products_count'],
+                    $row['invoices_count'],
+                    $row['repairs_count'],
+                    $row['total_revenue'],
+                    $row['avg_order_value'],
+                    $row['status'],
+                    $row['created_at']
+                ]);
             }
-        }
-
-        $profit = $totalRevenue - $totalCost;
-        $margin = $totalRevenue > 0 ? ($profit / $totalRevenue) * 100 : 0;
-
-        return [
-            'profit' => $profit,
-            'margin' => $margin
-        ];
-    }
-
-    private function calculateGrowthRate($storeId, $dateFrom, $dateTo)
-    {
-        $currentPeriod = Invoice::where('store_id', $storeId)
-            ->whereBetween('created_at', [$dateFrom, $dateTo])
-            ->sum('total');
-
-        $previousPeriod = Invoice::where('store_id', $storeId)
-            ->whereBetween('created_at', [
-                $dateFrom->copy()->subDays($dateTo->diffInDays($dateFrom)),
-                $dateFrom
-            ])
-            ->sum('total');
-
-        if ($previousPeriod == 0) {
-            return $currentPeriod > 0 ? 100 : 0;
-        }
-
-        return (($currentPeriod - $previousPeriod) / $previousPeriod) * 100;
-    }
-
-    private function getSystemOverview()
-    {
-        return [
-            'total_stores' => Store::count(),
-            'active_stores' => Store::where('is_active', true)->count(),
-            'total_users' => User::count(),
-            'active_users' => User::where('is_active', true)->count(),
-            'total_products' => Product::count(),
-            'total_invoices' => Invoice::count(),
-            'total_revenue' => Invoice::sum('total'),
-            'avg_order_value' => Invoice::avg('total'),
-        ];
-    }
-
-    private function getPerformanceMetrics()
-    {
-        return [
-            'avg_response_time' => 0.23, // seconds
-            'system_uptime' => 99.9, // percentage
-            'error_rate' => 0.01, // percentage
-            'active_sessions' => User::where('updated_at', '>=', Carbon::now()->subHours(1))->count(),
-        ];
-    }
-
-    private function getUserActivityMetrics()
-    {
-        $now = Carbon::now();
-        
-        return [
-            'daily_active' => User::where('updated_at', '>=', $now->copy()->startOfDay())->count(),
-            'weekly_active' => User::where('updated_at', '>=', $now->copy()->startOfWeek())->count(),
-            'monthly_active' => User::where('updated_at', '>=', $now->copy()->startOfMonth())->count(),
-            'new_registrations' => User::whereDate('created_at', $now->toDateString())->count(),
-        ];
-    }
-
-    private function getSalesTrends()
-    {
-        $trends = [];
-        
-        for ($i = 29; $i >= 0; $i--) {
-            $date = Carbon::now()->subDays($i);
-            $trends[] = [
-                'date' => $date->format('Y-m-d'),
-                'sales' => Invoice::whereDate('created_at', $date)->sum('total'),
-                'orders' => Invoice::whereDate('created_at', $date)->count(),
-            ];
-        }
-
-        return $trends;
-    }
-
-    private function getTopPerformers()
-    {
-        return [
-            'stores' => Store::withSum(['invoices' => function($query) {
-                $query->whereBetween('created_at', [Carbon::now()->startOfMonth(), Carbon::now()]);
-            }], 'total')
-            ->orderBy('invoices_sum_total', 'desc')
-            ->limit(5)
-            ->get(),
             
-            'users' => User::withCount(['invoices' => function($query) {
-                $query->whereBetween('created_at', [Carbon::now()->startOfMonth(), Carbon::now()]);
-            }])
-            ->orderBy('invoices_count', 'desc')
-            ->limit(5)
-            ->get(),
-        ];
+            fclose($file);
+        };
+
+        return Response::stream($callback, 200, $headers);
     }
 
-    private function getTotalRevenue($dateFrom, $dateTo)
+    private function exportFinancialSummary()
     {
-        return Invoice::whereBetween('created_at', [$dateFrom, $dateTo])->sum('total');
-    }
-
-    private function getTotalProfit($dateFrom, $dateTo)
-    {
-        // This would need to be calculated based on product costs
-        // For now, returning estimated profit margin of 30%
-        return $this->getTotalRevenue($dateFrom, $dateTo) * 0.3;
-    }
-
-    private function getStoreRevenueBreakdown($dateFrom, $dateTo)
-    {
-        return Store::with('invoices')
-            ->get()
-            ->map(function ($store) use ($dateFrom, $dateTo) {
-                $revenue = $store->invoices()
-                    ->whereBetween('created_at', [$dateFrom, $dateTo])
-                    ->sum('total');
-                
-                return [
-                    'store_name' => $store->name,
-                    'revenue' => $revenue,
-                    'percentage' => 0, // Will be calculated in the view
-                ];
-            })
-            ->sortByDesc('revenue');
-    }
-
-    private function getMonthlyFinancialTrends($dateFrom, $dateTo)
-    {
-        $trends = [];
-        $current = $dateFrom->copy()->startOfMonth();
+        $data = $this->getFinancialSummary();
         
-        while ($current <= $dateTo) {
-            $revenue = Invoice::whereYear('created_at', $current->year)
-                ->whereMonth('created_at', $current->month)
-                ->sum('total');
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="financial_summary_' . date('Y-m-d') . '.csv"',
+        ];
+
+        $callback = function() use ($data) {
+            $file = fopen('php://output', 'w');
             
-            $trends[] = [
-                'month' => $current->format('Y-m'),
-                'revenue' => $revenue,
-                'profit' => $revenue * 0.3, // Estimated
-            ];
+            // CSV Headers
+            fputcsv($file, ['Metric', 'Value']);
+
+            foreach ($data as $key => $value) {
+                fputcsv($file, [ucfirst(str_replace('_', ' ', $key)), $value]);
+            }
             
-            $current->addMonth();
-        }
+            fclose($file);
+        };
 
-        return $trends;
+        return Response::stream($callback, 200, $headers);
     }
 
-    private function getExpenseCategories($dateFrom, $dateTo)
+    private function exportSystemAnalytics()
     {
-        // This would need a proper expense tracking system
-        // For now, returning sample data
-        return [
-            ['category' => 'التشغيل', 'amount' => 50000],
-            ['category' => 'المرتبات', 'amount' => 80000],
-            ['category' => 'التسويق', 'amount' => 20000],
-            ['category' => 'الصيانة', 'amount' => 15000],
-        ];
-    }
-
-    private function getROIMetrics($dateFrom, $dateTo)
-    {
-        $revenue = $this->getTotalRevenue($dateFrom, $dateTo);
-        $investment = 500000; // This should come from actual investment data
+        $data = $this->getSystemMetrics();
         
-        return [
-            'roi_percentage' => $investment > 0 ? (($revenue - $investment) / $investment) * 100 : 0,
-            'payback_period' => 12, // months
-            'break_even_point' => 300000,
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="system_analytics_' . date('Y-m-d') . '.csv"',
         ];
-    }
 
-    private function getActiveUsersMetrics()
-    {
-        $now = Carbon::now();
-        
-        return [
-            'today' => User::where('updated_at', '>=', $now->copy()->startOfDay())->count(),
-            'this_week' => User::where('updated_at', '>=', $now->copy()->startOfWeek())->count(),
-            'this_month' => User::where('updated_at', '>=', $now->copy()->startOfMonth())->count(),
-        ];
-    }
+        $callback = function() use ($data) {
+            $file = fopen('php://output', 'w');
+            
+            // CSV Headers
+            fputcsv($file, ['Metric', 'Value']);
 
-    private function getLoginPatterns()
-    {
-        // This would need proper session tracking
-        // For now, returning sample data based on user activity
-        $patterns = [];
-        
-        for ($hour = 0; $hour < 24; $hour++) {
-            $patterns[] = [
-                'hour' => $hour,
-                'logins' => rand(5, 50), // Sample data
-            ];
-        }
+            foreach ($data as $key => $value) {
+                fputcsv($file, [ucfirst(str_replace('_', ' ', $key)), $value]);
+            }
+            
+            fclose($file);
+        };
 
-        return $patterns;
-    }
-
-    private function getFeatureUsage()
-    {
-        return [
-            'products' => Product::count(),
-            'invoices' => Invoice::whereBetween('created_at', [Carbon::now()->startOfMonth(), Carbon::now()])->count(),
-            'repairs' => Repair::whereBetween('created_at', [Carbon::now()->startOfMonth(), Carbon::now()])->count(),
-            'reports_generated' => 150, // This would need tracking
-        ];
-    }
-
-    private function getUserRetention()
-    {
-        $totalUsers = User::count();
-        $activeUsers = User::where('updated_at', '>=', Carbon::now()->subDays(30))->count();
-        
-        return [
-            'retention_rate' => $totalUsers > 0 ? ($activeUsers / $totalUsers) * 100 : 0,
-            'churn_rate' => $totalUsers > 0 ? (($totalUsers - $activeUsers) / $totalUsers) * 100 : 0,
-        ];
-    }
-
-    private function getGeographicDistribution()
-    {
-        // This would need proper location tracking
-        return [
-            'الرياض' => 45,
-            'جدة' => 30,
-            'الدمام' => 15,
-            'مكة' => 10,
-        ];
-    }
-
-    private function getStockLevels()
-    {
-        return [
-            'total_items' => Product::sum('quantity'),
-            'low_stock' => Product::whereRaw('quantity <= min_quantity')->count(),
-            'out_of_stock' => Product::where('quantity', 0)->count(),
-            'overstock' => Product::whereRaw('quantity > min_quantity * 5')->count(),
-        ];
-    }
-
-    private function getInventoryTurnover()
-    {
-        // This would need proper calculation based on sales and average inventory
-        return Product::with('invoiceItems')
-            ->get()
-            ->map(function ($product) {
-                $totalSold = $product->invoiceItems()->sum('quantity');
-                $turnoverRate = $product->quantity > 0 ? $totalSold / $product->quantity : 0;
-                
-                return [
-                    'product' => $product->name,
-                    'turnover_rate' => $turnoverRate,
-                    'status' => $turnoverRate > 4 ? 'سريع' : ($turnoverRate > 2 ? 'متوسط' : 'بطيء'),
-                ];
-            })
-            ->sortByDesc('turnover_rate');
-    }
-
-    private function getSlowMovingItems()
-    {
-        return Product::with('invoiceItems')
-            ->get()
-            ->filter(function ($product) {
-                $recentSales = $product->invoiceItems()
-                    ->whereHas('invoice', function ($query) {
-                        $query->where('created_at', '>=', Carbon::now()->subDays(90));
-                    })
-                    ->sum('quantity');
-                
-                return $recentSales < 5; // Less than 5 sold in 90 days
-            })
-            ->take(10);
-    }
-
-    private function getFastMovingItems()
-    {
-        return Product::with('invoiceItems')
-            ->get()
-            ->filter(function ($product) {
-                $recentSales = $product->invoiceItems()
-                    ->whereHas('invoice', function ($query) {
-                        $query->where('created_at', '>=', Carbon::now()->subDays(30));
-                    })
-                    ->sum('quantity');
-                
-                return $recentSales > 20; // More than 20 sold in 30 days
-            })
-            ->take(10);
-    }
-
-    private function getStockValueAnalysis()
-    {
-        return [
-            'total_cost_value' => Product::selectRaw('SUM(quantity * purchase_price) as total')->first()->total ?? 0,
-            'total_selling_value' => Product::selectRaw('SUM(quantity * selling_price) as total')->first()->total ?? 0,
-            'potential_profit' => Product::selectRaw('SUM(quantity * (selling_price - purchase_price)) as profit')->first()->profit ?? 0,
-        ];
-    }
-
-    private function getReorderAlerts()
-    {
-        return Product::whereRaw('quantity <= min_quantity')
-            ->with('category')
-            ->get()
-            ->map(function ($product) {
-                return [
-                    'product' => $product->name,
-                    'current_stock' => $product->quantity,
-                    'min_quantity' => $product->min_quantity,
-                    'category' => $product->category->name ?? 'غير محدد',
-                    'urgency' => $product->quantity == 0 ? 'urgent' : 'warning',
-                ];
-            });
+        return Response::stream($callback, 200, $headers);
     }
 }

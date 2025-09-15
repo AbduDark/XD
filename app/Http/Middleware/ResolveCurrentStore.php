@@ -43,7 +43,7 @@ class ResolveCurrentStore
                 $currentStore = Store::create([
                     'name' => $user->name . ' Store',
                     'name_ar' => 'متجر ' . $user->name,
-                    'slug' => \Str::slug($user->name . '-store-' . $user->id),
+                    'slug' => Str::slug($user->name . '-store-' . $user->id),
                     'owner_id' => $user->id,
                     'is_active' => true,
                     'tax_rate' => 15.0,

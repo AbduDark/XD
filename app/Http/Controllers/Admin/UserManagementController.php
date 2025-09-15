@@ -6,15 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Store;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
 
 class UserManagementController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(['auth', 'role:super_admin']);
-    }
+    // Middleware is handled in routes/web.php
 
     public function index(Request $request)
     {
@@ -66,7 +63,7 @@ class UserManagementController extends Controller
     public function create()
     {
         $stores = Store::where('is_active', true)->get();
-        
+
         return view('admin.users.create', compact('stores'));
     }
 
@@ -110,7 +107,7 @@ class UserManagementController extends Controller
     {
         $stores = Store::where('is_active', true)->get();
         $userStores = $user->stores()->pluck('stores.id')->toArray();
-        
+
         return view('admin.users.edit', compact('user', 'stores', 'userStores'));
     }
 
@@ -164,7 +161,7 @@ class UserManagementController extends Controller
         }
 
         $user->delete();
-        
+
         return redirect()->route('admin.users.index')
                         ->with('success', 'تم حذف المستخدم بنجاح');
     }
@@ -176,9 +173,9 @@ class UserManagementController extends Controller
         }
 
         $user->update(['is_active' => !$user->is_active]);
-        
+
         $status = $user->is_active ? 'تفعيل' : 'إلغاء تفعيل';
-        
+
         return back()->with('success', "تم {$status} المستخدم بنجاح");
     }
 
@@ -204,7 +201,7 @@ class UserManagementController extends Controller
         if (session()->has('impersonating')) {
             $originalUserId = session()->pull('impersonating');
             $originalUser = User::find($originalUserId);
-            
+
             if ($originalUser) {
                 auth()->login($originalUser);
                 return redirect()->route('admin.users.index')
