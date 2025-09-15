@@ -1,3 +1,4 @@
+
 <?php
 
 namespace App\Http\Middleware;
@@ -10,11 +11,6 @@ use Illuminate\Support\Facades\Auth;
 
 class ResolveCurrentStore
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
     public function handle(Request $request, Closure $next): Response
     {
         if (Auth::check()) {
@@ -25,21 +21,41 @@ class ResolveCurrentStore
                 return $next($request);
             }
 
-            // Get the current store for the user
-            $currentStore = $user->currentStore();
+            // Check if store is specified in route
+            $storeId = $request->route('store');
+            if ($storeId) {
+                $store = is_numeric($storeId) ? Store::find($storeId) : Store::where('slug', $storeId)->first();
+                
+                if ($store && $user->canAccessStore($store->id)) {
+                    session(['current_store_id' => $store->id]);
+                    view()->share('currentStore', $store);
+                    app()->instance('currentStore', $store);
+                    return $next($request);
+                }
+            }
+
+            // Get or create user's store
+            $currentStore = $user->ownedStores()->where('is_active', true)->first();
+            
+            if (!$currentStore) {
+                // Create a default store for the user if they don't have one
+                $currentStore = Store::create([
+                    'name' => $user->name . ' Store',
+                    'name_ar' => 'متجر ' . $user->name,
+                    'slug' => \Str::slug($user->name . '-store-' . $user->id),
+                    'owner_id' => $user->id,
+                    'is_active' => true,
+                    'tax_rate' => 15.0,
+                    'currency' => 'SAR'
+                ]);
+            }
             
             if ($currentStore) {
-                // Set the current store in the session and share it globally
                 session(['current_store_id' => $currentStore->id]);
                 view()->share('currentStore', $currentStore);
-                
-                // Also make it available globally in the app
                 app()->instance('currentStore', $currentStore);
             } else {
-                // If user has no store access, redirect or abort
-                if (!$user->isSuperAdmin()) {
-                    abort(403, 'لا يوجد لديك صلاحية للوصول لأي متجر');
-                }
+                abort(403, 'لا يوجد لديك صلاحية للوصول لأي متجر');
             }
         }
 

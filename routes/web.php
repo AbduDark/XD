@@ -34,7 +34,7 @@ Route::get('/local', function () {
 });
 
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'store.resolve'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // API Routes for dashboard and search

@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Scopes\StoreScope;
-use Illuminate\Support\Facades\Auth;
 
 class CashTransfer extends Model
 {
@@ -34,13 +33,10 @@ class CashTransfer extends Model
     protected static function booted()
     {
         static::addGlobalScope(new StoreScope);
-        
+
         static::creating(function ($cashTransfer) {
-            if (Auth::check() && !Auth::user()->isSuperAdmin()) {
-                $currentStoreId = session('current_store_id');
-                if ($currentStoreId) {
-                    $cashTransfer->store_id = $currentStoreId;
-                }
+            if (!$cashTransfer->store_id && session('current_store_id')) {
+                $cashTransfer->store_id = session('current_store_id');
             }
         });
     }

@@ -3,11 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Scopes\StoreScope;
 use Illuminate\Support\Facades\Auth;
 
 class ReturnItem extends Model
 {
+    use HasFactory;
+
     protected $table = 'returns';
 
     protected $fillable = [
@@ -49,13 +52,10 @@ class ReturnItem extends Model
     protected static function booted()
     {
         static::addGlobalScope(new StoreScope);
-        
+
         static::creating(function ($returnItem) {
-            if (Auth::check() && !Auth::user()->isSuperAdmin()) {
-                $currentStoreId = session('current_store_id');
-                if ($currentStoreId) {
-                    $returnItem->store_id = $currentStoreId;
-                }
+            if (!$returnItem->store_id && session('current_store_id')) {
+                $returnItem->store_id = session('current_store_id');
             }
         });
     }

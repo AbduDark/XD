@@ -47,21 +47,33 @@ class Invoice extends Model
     protected static function booted()
     {
         static::addGlobalScope(new StoreScope);
-        parent::boot();
 
         static::creating(function ($invoice) {
-            // Auto-assign store_id
-            if (Auth::check() && !Auth::user()->isSuperAdmin()) {
-                $currentStoreId = session('current_store_id');
-                if ($currentStoreId) {
-                    $invoice->store_id = $currentStoreId;
-                    // Generate invoice number per store
-                    $storeInvoiceCount = static::where('store_id', $currentStoreId)->count();
-                    $invoice->invoice_number = 'INV-' . date('Y') . '-S' . $currentStoreId . '-' . str_pad($storeInvoiceCount + 1, 6, '0', STR_PAD_LEFT);
-                } else {
-                    $invoice->invoice_number = 'INV-' . date('Y') . '-' . str_pad(static::count() + 1, 6, '0', STR_PAD_LEFT);
-                }
+            if (!$invoice->store_id && session('current_store_id')) {
+                $invoice->store_id = session('current_store_id');
+                // Generate invoice number per store
+                $storeInvoiceCount = static::where('store_id', session('current_store_id'))->count();
+                $invoice->invoice_number = 'INV-' . date('Y') . '-S' . session('current_store_id') . '-' . str_pad($storeInvoiceCount + 1, 6, '0', STR_PAD_LEFT);
+            } else if (Auth::check() && !Auth::user()->isSuperAdmin()) {
+                 // Fallback for cases where session might not be set but user is logged in and not super admin
+                 if (!$invoice->store_id) {
+                    // Attempt to get store_id from user if not explicitly set
+                    $userStoreId = Auth::user()->stores()->value('id'); // Assuming user has a relationship to stores
+                    if ($userStoreId) {
+                        $invoice->store_id = $userStoreId;
+                        $storeInvoiceCount = static::where('store_id', $userStoreId)->count();
+                        $invoice->invoice_number = 'INV-' . date('Y') . '-S' . $userStoreId . '-' . str_pad($storeInvoiceCount + 1, 6, '0', STR_PAD_LEFT);
+                    } else {
+                        // If user has no store, generate a generic invoice number
+                        $invoice->invoice_number = 'INV-' . date('Y') . '-' . str_pad(static::count() + 1, 6, '0', STR_PAD_LEFT);
+                    }
+                 } else {
+                    // If store_id is already set, generate invoice number based on that store
+                    $storeInvoiceCount = static::where('store_id', $invoice->store_id)->count();
+                    $invoice->invoice_number = 'INV-' . date('Y') . '-S' . $invoice->store_id . '-' . str_pad($storeInvoiceCount + 1, 6, '0', STR_PAD_LEFT);
+                 }
             } else {
+                // For super admins or when no store context is available
                 $invoice->invoice_number = 'INV-' . date('Y') . '-' . str_pad(static::count() + 1, 6, '0', STR_PAD_LEFT);
             }
         });

@@ -8,12 +8,24 @@ use App\Models\Invoice;
 use App\Models\Repair;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth; // Import Auth facade
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        // إحصائيات أساسية
+        $user = Auth::user();
+        $currentStore = app('currentStore');
+
+        // Get statistics for current store
+        $stats = [
+            'total_products' => Product::count(),
+            'total_invoices' => Invoice::count(),
+            'total_repairs' => Repair::where('status', 'pending')->count(),
+            'today_sales' => Invoice::whereDate('created_at', today())->sum('total'),
+        ];
+
+        // إحصائيات أساسية (تبقى كما هي ولكن قد تحتاج لتصفيتها حسب المتجر)
         $totalProducts = Product::count();
 
         $totalSales = Invoice::sum('total');
@@ -23,7 +35,7 @@ class DashboardController extends Controller
 
         $lowStockProducts = Product::where('quantity', '<=', 10)->count();
 
-        // النشاطات الأخيرة
+        // النشاطات الأخيرة (هذه البيانات قد تحتاج إلى تصفية حسب المتجر)
         $recentActivities = [
             [
                 'type' => 'sale',
@@ -45,7 +57,7 @@ class DashboardController extends Controller
             ]
         ];
 
-        // المنتجات منخفضة المخزون
+        // المنتجات منخفضة المخزون (هذه البيانات قد تحتاج إلى تصفية حسب المتجر)
         $lowStockItems = Product::where('quantity', '<=', 10)
             ->select('name_ar as name', 'quantity')
             ->take(5)
